@@ -350,11 +350,6 @@ export const useSpotify = () => {
     })
   }
 
-  
-
-
-
-
 
 
   const getMyRecentlyPlayed = async () => {
