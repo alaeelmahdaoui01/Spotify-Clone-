@@ -29,11 +29,12 @@
       <div class="profile-header p-4" :style="headerStyle">
         <div class="d-flex align-items-end">
           <img 
-            :src="profile.images?.[0]?.url || '/img/placeholder-user.png'" 
-            class="rounded-circle shadow me-4" 
+            :src="profile.images?.[0]?.url || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'" 
+            class="rounded-circle shadow me-4 profile-image" 
             width="200" 
             height="200" 
             :alt="profile.display_name"
+            @error="handleImageError"
           >
           <div class="profile-info">
             <h1 class="mb-2">{{ profile.display_name }}</h1>
@@ -141,6 +142,7 @@ const isLoading = ref(true)
 const error = ref<string | null>(null)
 const profile = ref<SpotifyProfile | null>(null)
 const userPlaylists = ref<any[]>([])
+const defaultProfileImage = '/img/default-profile.png'
 
 // Compute header background style
 const headerStyle = computed(() => {
@@ -186,6 +188,12 @@ const formatDate = (dateString?: string) => {
     month: 'long',
     day: 'numeric'
   })
+}
+
+// Handle image loading error
+const handleImageError = (event: Event) => {
+  const imgElement = event.target as HTMLImageElement
+  imgElement.src = defaultProfileImage
 }
 
 onMounted(async () => {
@@ -373,5 +381,17 @@ onMounted(async () => {
   .card-body {
     padding: 1rem;
   }
+}
+
+.profile-image {
+  object-fit: cover;
+  background-color: #282828;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.profile-image[src="/img/default-profile.png"] {
+  padding: 1rem;
+  background-color: #282828;
+  filter: brightness(0.8);
 }
 </style> 

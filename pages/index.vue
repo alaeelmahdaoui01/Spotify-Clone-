@@ -353,64 +353,63 @@ const connectSpotify = () => {
 
 <style scoped>
 .card {
-  transition: transform 0.2s;
+  transition: all 0.3s ease;
   cursor: pointer;
+  position: relative;
+  background: #181818 !important;
+  border: none;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
 }
 
 .card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-8px);
+  background: #282828 !important;
 }
 
 .card-img-top {
   height: 200px;
   object-fit: cover;
+  transition: transform 0.3s ease;
+  aspect-ratio: 1;
 }
 
-
-/* .play-button-overlay {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  opacity: 0;
-  transform: translateY(8px);
-  transition: all 0.3s;
-  background-color: #1DB954;
-  width: 48px;
-  height: 48px;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-} */
-
-/* 
-.play-button-overlay:hover {
-  transform: scale(1.1) !important;
-  background-color: #1ed760 !important;
-} */
-
-.card {
-  transition: transform 0.2s;
-  cursor: pointer;
-  position: relative; /* Ensure the play button is positioned relative to the card */
+.card:hover .card-img-top {
+  transform: scale(1.05);
 }
 
-.card:hover {
-  transform: translateY(-4px);
+.card-body {
+  padding: 1rem;
+  background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.8) 100%);
+  position: relative;
+  z-index: 1;
 }
 
-.card-img-top {
-  height: 200px;
-  object-fit: cover;
+.card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-text {
+  font-size: 0.875rem;
+  color: #b3b3b3 !important;
+  margin-bottom: 1rem;
+  line-height: 1.4;
 }
 
 .play-button-overlay {
   position: absolute;
-  bottom: 10px;
-  right: 10px;
-  opacity: 0; /* Hidden by default */
-  transform: translateY(8px); /* Slightly moved down */
-  transition: all 0.3s;
+  bottom: 1rem;
+  right: 1rem;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: all 0.3s ease;
   background-color: #1DB954;
   width: 48px;
   height: 48px;
@@ -418,63 +417,108 @@ const connectSpotify = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%; /* Make it circular */
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  z-index: 2;
 }
 
 .card:hover .play-button-overlay {
-  opacity: 1; /* Make the button visible */
-  transform: translateY(0); /* Reset the position */
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.play-button-overlay:hover {
+  transform: scale(1.1);
+  background-color: #1ed760;
+  box-shadow: 0 6px 16px rgba(29, 185, 84, 0.4);
 }
 
 .play-button-overlay i {
-  color: white; /* Ensure the play icon is visible */
-  font-size: 24px; /* Adjust the size of the play icon */
+  color: white;
+  font-size: 1.5rem;
+  margin-left: 2px;
 }
-
 
 .play-button-overlay2 {
   position: absolute;
-  bottom: 10px;
-  right: 10px;
-  opacity: 0; /* Hidden by default */
-  transform: translateY(8px); /* Slightly moved down */
-  transition: all 0.3s;
+  bottom: 1rem;
+  right: 1rem;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: all 0.3s ease;
   background-color: #1DB954;
-  width: 100px;
-  height: 48px;
-  padding: 0;
+  padding: 0.5rem 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px; /* Make it circular */
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  z-index: 2;
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.875rem;
 }
 
 .card:hover .play-button-overlay2 {
-  opacity: 1; /* Make the button visible */
-  transform: translateY(0); /* Reset the position */
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.play-button-overlay2:hover {
+  transform: scale(1.05);
+  background-color: #1ed760;
+  box-shadow: 0 6px 16px rgba(29, 185, 84, 0.4);
+  color: white;
 }
 
 .play-button-overlay2 i {
-  color: white; /* Ensure the play icon is visible */
-  font-size: 24px; /* Adjust the size of the play icon */
+  margin-right: 0.5rem;
 }
 
+/* Section Headers */
+section h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 1.5rem;
+}
+
+section a {
+  color: #b3b3b3;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: color 0.2s ease;
+}
+
+section a:hover {
+  color: #fff;
+}
+
+/* Alert Styling */
 .alert-info {
   background-color: rgba(29, 185, 84, 0.1);
   border: 1px solid rgba(29, 185, 84, 0.2);
   color: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
 }
 
+/* Button Styling */
 .btn-success {
   background-color: #1DB954;
   border: none;
   font-weight: 600;
   transition: all 0.2s ease;
+  border-radius: 20px;
+  padding: 0.5rem 1.5rem;
 }
 
 .btn-success:hover {
   background-color: #1ed760;
   transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(29, 185, 84, 0.3);
 }
 
 .btn-success:disabled {
@@ -482,8 +526,32 @@ const connectSpotify = () => {
   opacity: 0.7;
 }
 
-.bi-spotify {
-  color: #1DB954;
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .card-img-top {
+    height: 160px;
+  }
+  
+  .card-title {
+    font-size: 0.9rem;
+  }
+  
+  .card-text {
+    font-size: 0.8rem;
+  }
+  
+  .play-button-overlay {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .play-button-overlay i {
+    font-size: 1.25rem;
+  }
+  
+  .play-button-overlay2 {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+  }
 }
-
 </style> 

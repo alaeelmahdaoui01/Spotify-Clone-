@@ -389,148 +389,216 @@ const playPlaylist = async (playlist: SpotifyPlaylist) => {
 
 <style scoped>
 .my-music-page {
-  padding: 1rem;
+  padding: 2rem;
+  background: #121212;
+  min-height: calc(100vh - 60px);
 }
 
-.hover-bg-dark:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+.playlists-section, .top-artists {
+  margin-bottom: 3rem;
+}
+
+h3 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 1.5rem;
+  padding-left: 0.5rem;
+  position: relative;
+}
+
+h3::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -0.5rem;
+  width: 40px;
+  height: 3px;
+  background: #1DB954;
+  border-radius: 2px;
+}
+
+.card {
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  background: #181818 !important;
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  height: 100%;
+}
+
+.card:hover {
+  transform: translateY(-8px);
+  background: #282828 !important;
+}
+
+.card-img-top {
+  height: 200px;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+  aspect-ratio: 1;
+}
+
+.card:hover .card-img-top {
+  transform: scale(1.05);
+}
+
+.card-body {
+  padding: 1.25rem;
+  background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.8) 100%);
+  position: relative;
+  z-index: 1;
+}
+
+.card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-text {
+  font-size: 0.875rem;
+  color: #b3b3b3 !important;
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+
+.play-button-overlay2 {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: all 0.3s ease;
+  background-color: #1DB954;
+  padding: 0.5rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  z-index: 2;
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.card:hover .play-button-overlay2 {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.play-button-overlay2:hover {
+  transform: scale(1.05);
+  background-color: #1ed760;
+  box-shadow: 0 6px 16px rgba(29, 185, 84, 0.4);
 }
 
 .playlist-tracks {
   background: rgba(0, 0, 0, 0.3);
-  border-radius: 8px;
-  margin: 1rem;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 2rem 0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
-.card {
-  transition: transform 0.2s;
-  cursor: pointer;
+.list-group-item {
+  transition: all 0.2s ease;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1rem;
+  background: transparent;
 }
 
-.card:hover {
-  transform: translateY(-4px);
+.list-group-item:last-child {
+  border-bottom: none;
 }
 
-.card-img-top {
-  height: 200px;
-  object-fit: cover;
+.list-group-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(8px);
 }
 
-.user-profile {
-  background: linear-gradient(to bottom, #1db954, #191414);
-  border-radius: 8px;
-  margin: 1rem;
+.track-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 0.25rem;
 }
 
-.user-profile img {
-  border: 3px solid white;
+.artist-name {
+  font-size: 0.875rem;
+  color: #b3b3b3;
 }
 
-.card {
-  transition: transform 0.2s;
-  cursor: pointer;
-}
-
-.card:hover {
-  transform: translateY(-4px);
-}
-
-.card-img-top {
-  height: 200px;
-  object-fit: cover;
-}
-
-
-/* .play-button-overlay {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
+.btn-link {
   opacity: 0;
-  transform: translateY(8px);
-  transition: all 0.3s;
-  background-color: #1DB954;
-  width: 48px;
-  height: 48px;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-} */
-
-/* 
-.play-button-overlay:hover {
-  transform: scale(1.1) !important;
-  background-color: #1ed760 !important;
-} */
-
-.card {
-  transition: transform 0.2s;
-  cursor: pointer;
-  position: relative; /* Ensure the play button is positioned relative to the card */
+  transform: translateX(8px);
+  transition: all 0.2s ease;
+  padding: 0.5rem;
+  border-radius: 50%;
+  color: #fff !important;
+  background: rgba(255, 255, 255, 0.1);
 }
 
-.card:hover {
-  transform: translateY(-4px);
+.list-group-item:hover .btn-link {
+  opacity: 1;
+  transform: translateX(0);
 }
 
-.card-img-top {
-  height: 200px;
-  object-fit: cover;
+.btn-link:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
 }
 
-.play-button-overlay {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  opacity: 0; /* Hidden by default */
-  transform: translateY(8px); /* Slightly moved down */
-  transition: all 0.3s;
-  background-color: #1DB954;
-  width: 48px;
-  height: 48px;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%; /* Make it circular */
+@media (max-width: 768px) {
+  .my-music-page {
+    padding: 1rem;
+  }
+
+  h3 {
+    font-size: 1.5rem;
+  }
+
+  .card-img-top {
+    height: 160px;
+  }
+
+  .card-body {
+    padding: 1rem;
+  }
+
+  .card-title {
+    font-size: 0.9rem;
+  }
+
+  .card-text {
+    font-size: 0.8rem;
+  }
+
+  .play-button-overlay2 {
+    padding: 0.4rem 1rem;
+    font-size: 0.8rem;
+  }
+
+  .list-group-item {
+    padding: 0.75rem;
+  }
+
+  .track-name {
+    font-size: 0.9rem;
+  }
+
+  .artist-name {
+    font-size: 0.8rem;
+  }
 }
-
-.card:hover .play-button-overlay {
-  opacity: 1; /* Make the button visible */
-  transform: translateY(0); /* Reset the position */
-}
-
-.play-button-overlay i {
-  color: white; /* Ensure the play icon is visible */
-  font-size: 24px; /* Adjust the size of the play icon */
-}
-
-
-.play-button-overlay2 {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  opacity: 0; /* Hidden by default */
-  transform: translateY(8px); /* Slightly moved down */
-  transition: all 0.3s;
-  background-color: #1DB954;
-  width: 100px;
-  height: 48px;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px; /* Make it circular */
-}
-
-.card:hover .play-button-overlay2 {
-  opacity: 1; /* Make the button visible */
-  transform: translateY(0); /* Reset the position */
-}
-
-.play-button-overlay2 i {
-  color: white; /* Ensure the play icon is visible */
-  font-size: 24px; /* Adjust the size of the play icon */
-}
-
 </style> 

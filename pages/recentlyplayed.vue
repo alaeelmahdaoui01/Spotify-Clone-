@@ -279,43 +279,124 @@ function goBack() {
 </script>
 
 <style scoped>
-.playlist-page {
-  min-height: 100vh;
-  background: #121212;
-}
-
-.playlist-header {
-  background: linear-gradient(to bottom, rgba(0,0,0,0.7), #121212);
+.recently-played {
   padding: 2rem;
+  background: #121212;
+  min-height: calc(100vh - 60px);
 }
 
-.playlist-info {
-  color: white;
+.btn-outline-light {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #fff;
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.tracks-list {
+.btn-outline-light:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  color: #fff;
+}
+
+h3 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 1.5rem;
+  padding-left: 0.5rem;
+}
+
+.list-group {
   background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
 .list-group-item {
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1rem;
+  background: transparent;
+}
+
+.list-group-item:last-child {
+  border-bottom: none;
 }
 
 .list-group-item:hover {
-  background-color: rgba(255, 255, 255, 0.1) !important;
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(8px);
 }
 
-.track-number {
-  width: 30px;
-  text-align: center;
-  color: #b3b3b3;
+.list-group-item img {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.list-group-item:hover img {
+  transform: scale(1.05);
 }
 
 .track-name {
-  font-weight: 500;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 0.25rem;
 }
 
 .artist-name {
+  font-size: 0.875rem;
   color: #b3b3b3;
+}
+
+.btn-link {
+  opacity: 0;
+  transform: translateX(8px);
+  transition: all 0.2s ease;
+  padding: 0.5rem;
+  border-radius: 50%;
+  color: #fff !important;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.list-group-item:hover .btn-link {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.btn-link:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+@media (max-width: 768px) {
+  .recently-played {
+    padding: 1rem;
+  }
+
+  h3 {
+    font-size: 1.5rem;
+  }
+
+  .list-group-item {
+    padding: 0.75rem;
+  }
+
+  .track-name {
+    font-size: 0.9rem;
+  }
+
+  .artist-name {
+    font-size: 0.8rem;
+  }
 }
 </style> 
