@@ -1,10 +1,31 @@
 <template>
-  <div v-if="isAuthenticated">
-  <div class="spotify-app">
+  
+  <div v-if="isAuthenticated" class="spotify-app">
     <!-- Left Sidebar -->
     <nav class="sidebar bg-black">
-      <div class="sidebar-header p-3">
-        <h3 class="spotify-logo mb-0">Spotify</h3>
+      <div class="topthing p-3">
+        <div class="logo-link">
+        <svg viewBox="0 0 24 24" class="spotify-logo">
+            <path fill="currentColor" d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+          </svg>
+          <span class="spotify-logo mb-0"> Spotify</span> </div>
+        <!-- <h3 class="spotify-logo mb-0">Spotify</h3> -->
+        <div class="dropdown me-2">
+                <button class="btn btn-dark rounded-circle dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                  <img v-if="user?.photoURL" :src="user.photoURL" :alt="user?.displayName || 'User'" 
+                      class="rounded-circle" width="32" height="32">
+                  <i v-else class="bi bi-person"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                  <li class="dropdown-item-text text-white">User: {{ user?.displayName || user?.email?.split('@')[0] }}</li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><NuxtLink to="/profile" class="dropdown-item">Edit profile</NuxtLink></li>
+                  <!-- <li><NuxtLink to="/debug-auth" class="dropdown-item">Debug Auth</NuxtLink></li> -->
+                  <li><NuxtLink to="/logout" class="dropdown-item">
+                    <span class="text-danger"><i class="bi bi-box-arrow-right me-2"></i>Log out</span>
+                  </NuxtLink></li>
+                </ul>
+              </div>
       </div>
 
       <!-- Main Navigation -->
@@ -26,118 +47,93 @@
             </NuxtLink>
           </li>
           <li class="nav-item">
-            <NuxtLink to="/player" class="nav-link text-white d-flex align-items-center">
+            <!-- <NuxtLink to="/player" class="nav-link text-white d-flex align-items-center">
               <i class="bi bi-speaker-fill me-3"></i>
               <span>Player</span>
-            </NuxtLink>
+            </NuxtLink> -->
           </li>
         </ul>
       </div>
 
       <!-- Spotify Connection Status -->
-      <!-- <div v-if="isAuthenticated && !isSpotifyConnected" class="spotify-status-panel p-3 mb-3 rounded-3 bg-dark-subtle">
+      <div v-if="isAuthenticated && !isSpotifyConnected" class="spotify-status-panel p-3 mb-3 rounded-3 bg-dark-subtle">
         <div class="d-flex align-items-center justify-content-between mb-2">
           <h6 class="mb-0">Connect to Spotify</h6>
         </div>
         <p class="text-muted small mb-2">Connect to see your playlists and listen to music</p>
-        <button @click="connectToSpotify" class="btn btn-success btn-sm rounded-pill w-100">
+        <button @click="connectSpotify" class="btn btn-success btn-sm rounded-pill w-100">
           <i class="bi bi-spotify me-2"></i> Connect
         </button>
-      </div> -->
+      </div>
 
       <!-- Library Section -->
       <div class="library-section">
-        <div class="d-flex align-items-center justify-content-between p-3">
-          <div class="d-flex align-items-center">
-            <i class="bi bi-collection me-2"></i>
-            <span>Your Library</span>
-          </div>
-          <div>
-            <button class="btn btn-link text-white p-1"><i class="bi bi-plus"></i></button>
-            <button class="btn btn-link text-white p-1"><i class="bi bi-arrow-right"></i></button>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="library text-muted mb-0">Library</h6>
+          <div class="buttons">
+          <button 
+            @click="createPlaylist" 
+            class="btn btn-link text-white p-0"
+            :disabled="!isConnected"
+          >
+            <i class="bi bi-plus-lg"></i>
+          </button>
+            <NuxtLink 
+              to="/my-music"
+              class="btn btn-link text-white p-0 text-decoration-none"
+            >
+              <div class="view"> View All </div>
+          </NuxtLink>
           </div>
         </div>
-
+        
         <!-- Playlists -->
-        <div class="playlists-container p-2">
-          <div v-if="!user" class="playlist-cta p-3 rounded-3 bg-dark-subtle mb-3">
-            <h6 class="mb-2">Create your first playlist</h6>
-            <p class="text-muted small mb-2">It's easy, we'll help you</p>
-            <button class="btn btn-light btn-sm rounded-pill">Create playlist</button>
+        <div class="playlists">
+          <div v-if="isLoading" class="text-center py-3">
+            <div class="spinner-border spinner-border-sm text-light" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
           </div>
-
-          <!-- Playlist Items -->
-          <div class="playlist-item p-2 rounded-2 hover-bg-dark" v-for="playlist in playlists" :key="playlist.id">
-            <div class="d-flex align-items-center">
-              <img :src="playlist.imageUrl" class="rounded-2 me-3" width="48" height="48" :alt="playlist.name">
-              <div>
-                <div class="playlist-name">{{ playlist.name }}</div>
-                <div class="text-muted small">Playlist • {{ playlist.owner }}</div>
-              </div>
+          
+          <div v-else>
+            <div v-for="playlist in userPlaylists.slice(0,4)" :key="playlist.id" class="playlist-item">
+              <NuxtLink 
+                :to="`/playlist/${playlist.id}`" 
+                class="d-flex align-items-center text-white text-decoration-none py-2 px-3 rounded"
+                :class="{ 'active': route.path === `/playlist/${playlist.id}` }"
+              >
+                <img 
+                  :src="playlist.images?.[0]?.url || '/img/placeholder-playlist.png'" 
+                  :alt="playlist.name"
+                  class="playlist-cover me-3"
+                >
+                <div class="flex-grow-1">
+                  <div class="text-truncate">{{ playlist.name }}</div>
+                  <div class="text-muted small text-truncate">
+                    {{ playlist.tracks.total }} tracks
+                  </div>
+                </div>
+              </NuxtLink>
             </div>
           </div>
         </div>
       </div>
     </nav>
 
-    <!-- Main Content Area -->
-    <main class="main-content">
-      <!-- Top Bar -->
-      <header class="top-bar bg-black bg-opacity-75 p-3">
-        <div class="d-flex justify-content-between align-items-center">
-          
-          
-          <div class="search-container flex-grow-1 mx-4" style="max-width: 600px;">
-            <SearchBar v-if="isAuthenticated" @select="handleTrackSelect" />
-          </div>
 
-          <div class="d-flex align-items-center gap-3">
-            
-            <div v-if="!user" class="d-flex gap-2">
-              <NuxtLink to="/login" class="btn btn-light rounded-pill px-4">Log in</NuxtLink>
-              <NuxtLink to="/login?register=true" class="btn btn-outline-light rounded-pill px-4">Sign up</NuxtLink>
-            </div>
-            <div v-else class="d-flex align-items-center">
-              <div class="dropdown me-2">
-                <button class="btn btn-dark rounded-circle dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                  
-                  <NuxtLink to="/profile" >
-                    <img v-if="user?.photoURL" :src="user.photoURL" :alt="user?.displayName || 'User'"  class="rounded-circle" width="32" height="32">
-                    <i v-else class="bi bi-person"></i>
-                  </NuxtLink>
-                  
-                </button>
-                <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end" aria-labelledby="dropdownMenuButton">
-                  <li class="dropdown-item-text text-white">{{ user?.displayName || user?.email?.split('@')[0] }}</li>
-                  <li><hr class="dropdown-divider"></li>
-                  <li><NuxtLink to="/profile" class="dropdown-item">Profile</NuxtLink></li>
-                  <li><NuxtLink to="/debug-auth" class="dropdown-item">Debug Auth</NuxtLink></li>
-                  <li><NuxtLink to="/logout" class="dropdown-item">
-                    <span class="text-danger"><i class="bi bi-box-arrow-right me-2"></i>Log out</span>
-                  </NuxtLink></li>
-                </ul>
-              </div>
-              
-              <!-- Direct Logout Button -->
-              <NuxtLink to="/logout" class="btn btn-outline-danger rounded-pill">
-                <i class="bi bi-box-arrow-right me-1"></i> Log out
-              </NuxtLink>
-            </div>
-          </div>
-        </div>
-      </header>
+    <main class="main-content">
 
       <!-- Page Content -->
       <div class="content-area">
         <div v-if="user && $route.path === '/'" class="welcome-banner p-4 mb-4 rounded-3 bg-success bg-opacity-25">
-          <h3>Welcome back, {{ user.displayName || user.email?.split('@')[0] }}!</h3>
-          <p>Continue listening to your favorite music or discover something new.</p>
+          <h3>Hello, {{ user.displayName || user.email?.split('@')[0] }}!</h3>
+          <p>Explore your playlists or find something new to enjoy today.</p>
         </div>
         <slot />
       </div>
 
       <!-- Now Playing Bar -->
-      <footer class="now-playing-bar bg-black p-3">
+      <footer class="now-playing-bar bg-black p-3" >
         <div class="d-flex justify-content-between align-items-center">
           <!-- Track Info -->
           <div class="d-flex align-items-center" style="width: 30%">
@@ -148,54 +144,67 @@
                 <div class="track-name">{{ currentTrack.name }}</div>
                 <div class="artist-name text-muted small">{{ currentTrack.artists?.[0]?.name }}</div>
               </div>
-              <button class="btn btn-link text-white ms-3">
+              <span>
+                <!-- <button class="btn btn-link text-white ms-3">
                 <i class="bi bi-heart"></i>
-              </button>
+              </button> -->
+              </span>
+              
             </div>
             <div v-else class="d-flex align-items-center">
-              <div class="text-muted small">Not playing</div>
-              <NuxtLink to="/player" class="btn btn-link text-white ms-3" title="Open player">
+              
+              <!-- <NuxtLink to="/player" class="btn btn-link text-white ms-3" title="Open player" @click="footer=false">
+                <div class="text-muted small">Click to see what's currently playing</div>
                 <i class="bi bi-music-player"></i>
-              </NuxtLink>
+              </NuxtLink> -->
             </div>
           </div>
 
           <!-- Player Controls -->
-          <div class="player-controls text-center" style="width: 40%">
-            <div class="d-flex justify-content-center align-items-center gap-3 mb-2">
-              <button class="btn btn-link text-white"><i class="bi bi-shuffle"></i></button>
-              <button @click="previousTrack" class="btn btn-link text-white">
-                <i class="bi bi-skip-start-fill"></i>
-              </button>
-              <button @click="togglePlay" class="btn btn-link text-white rounded-circle play-button">
-                <i :class="isPlaying ? 'bi bi-pause-fill' : 'bi bi-play-fill'" class="fs-4"></i>
-              </button>
-              <button @click="nextTrack" class="btn btn-link text-white">
-                <i class="bi bi-skip-end-fill"></i>
-              </button>
-              <button class="btn btn-link text-white"><i class="bi bi-repeat"></i></button>
-            </div>
-            <div class="progress" style="height: 4px">
-              <div class="progress-bar bg-white" role="progressbar" style="width: 25%"></div>
-            </div>
-          </div>
-
-          <!-- Volume Controls -->
-          <div class="volume-controls d-flex align-items-center justify-content-end gap-3" style="width: 30%">
-            <button class="btn btn-link text-white"><i class="bi bi-mic"></i></button>
-            <button class="btn btn-link text-white"><i class="bi bi-list"></i></button>
-            <button class="btn btn-link text-white"><i class="bi bi-volume-up"></i></button>
-            <div class="progress" style="width: 100px; height: 4px">
+          <div class="player-controls d-flex align-items-center gap-3">
+            <button 
+              @click="previousTrack" 
+              class="btn btn-link text-white p-0"
+              :disabled="!isSpotifyConnected"
+            >
+              <i class="bi bi-skip-start-fill fs-4"></i>
+            </button>
+            
+            <button 
+              @click="togglePlay" 
+              class="btn btn-link text-white p-0"
+              :disabled="!isSpotifyConnected"
+            >
+              <i :class="isPlaying ? 'bi bi-pause-fill' : 'bi bi-play-fill'" class="fs-4"></i>
+            </button>
+            
+            <button 
+              @click="nextTrack" 
+              class="btn btn-link text-white p-0"
+              :disabled="!isSpotifyConnected"
+            >
+              <i class="bi bi-skip-end-fill fs-4"></i>
+            </button>
+            
+            <div class="volume-control d-flex align-items-center gap-2">
+              <i class="bi bi-volume-down text-white"></i>
               <input 
                 type="range" 
                 class="form-range" 
                 min="0" 
                 max="100" 
-                v-model="volume" 
-                @change="updateVolume"
+                v-model="volume"
+                @input="updateVolume"
               >
+              <i class="bi bi-volume-up text-white"></i>
             </div>
-            <NuxtLink to="/player" class="btn btn-link text-white">
+          </div>
+
+          <div class="volume-controls d-flex align-items-center justify-content-end gap-3" style="width: 30%">
+            <button class="btn btn-link text-white ms-3">
+                <i class="bi bi-heart"></i>
+              </button>
+            <NuxtLink to="/player" @click="footer=false" class="btn btn-link text-white">
               <i class="bi bi-arrows-angle-expand"></i>
             </NuxtLink>
           </div>
@@ -203,7 +212,7 @@
       </footer>
     </main>
   </div>
-  </div>
+
   <div v-else>
     <NavBar />
     <div class="main-content2">
@@ -216,66 +225,119 @@
       </div>
     </div>
   </div>
+
 </template>
 
 <script setup lang="ts">
-// import { ref, computed } from 'vue'
-// import { useRouter } from 'vue-router'
+import { ref, computed, watch, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuth } from '~/composables/useAuth'
 import { useSpotify } from '~/composables/useSpotify'
 import { useSpotifyPlayer } from '~/composables/useSpotifyPlayer'
 
+interface SpotifyPlaylist {
+  id: string
+  name: string
+  description: string | null
+  images: { url: string }[]
+  tracks: {
+    total: number
+  }
+  owner: {
+    display_name: string
+  }
+}
+
+const router = useRouter()
+const route = useRoute()
 const { user, isAuthenticated, logout } = useAuth()
-const { isConnected, isInitialized, login: spotifyLogin } = useSpotify()
+const { 
+  getUserPlaylists, 
+  createPlaylist: spotifyCreatePlaylist,
+  login,
+  isConnected,
+  isInitialized
+} = useSpotify()
+
+
 const { 
   currentTrack, 
   isPlaying, 
   togglePlay, 
-  previousTrack,
   nextTrack,
+  previousTrack,
   setVolume
 } = useSpotifyPlayer()
 
-const router = useRouter()
-const volume = ref(50)
-
 const isSpotifyConnected = computed(() => isInitialized.value && isConnected.value)
 
-// Mock playlists data
-const playlists = ref([
-  {
-    id: '1',
-    name: 'Liked Songs',
-    owner: 'You',
-    imageUrl: 'https://misc.scdn.co/liked-songs/liked-songs-640.png'
-  },
-  {
-    id: '2',
-    name: 'Your Top Songs 2025',
-    owner: 'Spotify',
-    imageUrl: 'https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da848bc863a162e124e43902d5e2'
-  }
-])
+const isLoading = ref(true)
+const footer = ref(true)
+const userPlaylists = ref<SpotifyPlaylist[]>([])
+const volume = ref(50)
 
-const login = async () => {
+// Load playlists
+const loadPlaylists = async () => {
+  if (!isConnected.value) return
+  
   try {
-    // Navigate to login page instead of direct Google login
-    navigateTo('/login')
+    isLoading.value = true
+    const playlists = await getUserPlaylists()
+    userPlaylists.value = playlists
   } catch (error) {
-    console.error('Login error:', error)
+    console.error('Error loading playlists:', error)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Create new playlist
+const createPlaylist = async () => {
+  if (!isConnected.value) return
+  
+  try {
+    const name = prompt('Enter playlist name:')
+    if (!name) return
+    
+    const description = prompt('Enter playlist description (optional):') || undefined
+    
+    const playlist = await spotifyCreatePlaylist(name, description)
+    if (playlist) {
+      // Reload playlists
+      await loadPlaylists()
+      // Navigate to the new playlist
+      router.push(`/playlist/${playlist.id}`)
+    }
+  } catch (error) {
+    console.error('Error creating playlist:', error)
+    alert('Failed to create playlist. Please try again.')
   }
 }
 
 // Connect to Spotify
-const connectToSpotify = () => {
-  spotifyLogin()
+const connectSpotify = () => {
+  login()
 }
+
+// Watch for connection changes
+watch(isConnected, (newValue) => {
+  if (newValue) {
+    loadPlaylists()
+  }
+})
+
+// Load playlists on mount if connected
+onMounted(async () => {
+  if (isConnected.value) {
+    await loadPlaylists()
+  }
+})
 
 // Handle logout
 const handleLogout = async () => {
   try {
     await logout()
-    router.push('/')
+    router.push('/login')
   } catch (error) {
     console.error('Logout error:', error)
   }
@@ -291,11 +353,7 @@ const handleTrackSelect = (track: any) => {
 const updateVolume = () => {
   setVolume(volume.value)
 }
-
-
 </script>
-
-
 
 <style scoped>
 .spotify-app {
@@ -312,6 +370,13 @@ const updateVolume = () => {
   overflow-y: auto;
   background-color: #000000;
   border-right: 1px solid #282828;
+  
+}
+
+.topthing{
+  display:flex;
+  flex-direction: row;
+  justify-content:space-between
 }
 
 .main-content {
@@ -331,11 +396,16 @@ const updateVolume = () => {
   overflow-y: auto;
   padding: 20px;
 }
-
 .now-playing-bar {
+  position: fixed; /* Fix the footer to the viewport */
+  bottom: 0; /* Align it to the bottom of the viewport */
+  left: 0; /* Align it to the left edge */
+  width: 100%; /* Make it span the full width of the viewport */
+  max-height: 150px;
   border-top: 1px solid #282828;
+  background-color: #000; /* Ensure it has a background to cover content behind it */
+  z-index: 1000; /* Ensure it stays above other elements */
 }
-
 .nav-link {
   color: #b3b3b3;
   transition: color 0.2s;
@@ -375,7 +445,18 @@ const updateVolume = () => {
 }
 
 .playlist-item:hover {
-  background-color: #282828;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.playlist-item.active {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.playlist-cover {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
 }
 
 .hover-bg-dark:hover {
@@ -411,6 +492,8 @@ const updateVolume = () => {
   position: relative;
   min-width: 300px;
 }
+
+
 .main-content2 {
   background: linear-gradient(#1DB954, #191414);
   min-height: calc(100vh - 80px); /* Subtract navbar height */
@@ -517,4 +600,67 @@ h1 {
   }
 }
 
+.view {
+  
+  font-size: 13px; /* Adjust the font size */
+  font-weight: bold; /* Make the text bold */
+  color: #048531; /* Spotify green color */
+  cursor: pointer; /* Change the cursor to a pointer */
+  transition: color 0.3s ease; /* Add a smooth transition effect */
+  margin-right: 5px; 
+}
+
+.view a {
+  text-decoration:none;
+}
+
+.view:hover {
+  color: #0b8636; /* Lighter green on hover */
+}
+
+ 
+  
+  .spotify-logo {
+    width: 40px;
+    height: 40px;
+    color: #1DB954;
+  }
+
+  .logo-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 24px;
+    font-weight: 700;
+    color: white;
+    text-decoration: none;
+  }
+
+  .buttons{
+    display:flex;
+    flex-direction: row;
+    gap : 4px; 
+    align-items: center 
+  }
+
+.library{
+  margin-left: 10px
+}
+
+.welcome-banner h3 {
+  font-size: 28px;
+  font-weight: bold;
+  color: #1DB954; /* Spotify green */
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  margin-bottom: 8px;
+}
+
+.welcome-banner p {
+  font-size: 16px;
+  color: #ffffff; /* White text */
+  opacity: 0.8;
+  line-height: 1.5;
+}
 </style> 
+
+

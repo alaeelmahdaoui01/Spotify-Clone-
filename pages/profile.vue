@@ -173,13 +173,13 @@ const isChanged = computed(() => {
 
 // Initialize form data
 onMounted(() => {
-  if (user.value) {
-    displayName.value = user.value.displayName || ''
-    email.value = user.value.email || ''
-  } else {
-    // Redirect to login if not authenticated
-    router.push('/login')
-  }
+  // if (user.value) {
+  //   displayName.value = user.value.displayName || ''
+  //   email.value = user.value.email || ''
+  // } else {
+  //   // Redirect to login if not authenticated
+  //   router.push('/login')
+  // }
 })
 
 // Methods

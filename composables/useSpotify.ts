@@ -69,32 +69,62 @@ export const useSpotify = () => {
 
   // Refresh access token using refresh token
   const refreshAccessToken = async () => {
+    if (!process.client) return null
+    
     try {
-      if (!spotifyApi.getRefreshToken()) {
+      const refreshToken = localStorage.getItem('spotify_refresh_token')
+      if (!refreshToken) {
         console.error('No refresh token available')
-        return false
+        return null
       }
-      
-      const data = await spotifyApi.refreshAccessToken()
-      const token = {
-        access_token: data.body.access_token,
-        refresh_token: spotifyApi.getRefreshToken(),
-        expires_in: data.body.expires_in
+
+      const params = new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken
+      })
+
+      const response = await fetch('https://accounts.spotify.com/api/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': `Basic ${btoa(`${config.public.spotifyClientId}:${config.spotifyClientSecret}`)}`
+        },
+        body: params.toString()
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.error('Token refresh failed:', errorData)
+        throw new Error('Failed to refresh token')
       }
-      
-      spotifyApi.setAccessToken(data.body.access_token)
-      persistToken(token)
+
+      const data = await response.json()
+      const newAccessToken = data.access_token
+      const newRefreshToken = data.refresh_token || refreshToken
+
+      localStorage.setItem('spotify_access_token', newAccessToken)
+      if (data.refresh_token) {
+        localStorage.setItem('spotify_refresh_token', newRefreshToken)
+      }
+
+      spotifyApi.setAccessToken(newAccessToken)
       isConnected.value = true
-      return true
+      return newAccessToken
     } catch (error) {
-      console.error('Failed to refresh access token', error)
-      return false
+      console.error('Error refreshing token:', error)
+      isConnected.value = false
+      return null
     }
   }
 
   // Login with Spotify - redirects to Spotify authorization page
   const login = () => {
     if (!process.client) return
+    
+    // Clear existing tokens to force re-authentication
+    localStorage.removeItem('spotify_access_token')
+    localStorage.removeItem('spotify_refresh_token')
+    localStorage.removeItem('spotify_token_expires')
     
     const scopes = [
       'user-read-private',
@@ -106,44 +136,24 @@ export const useSpotify = () => {
       'user-top-read',
       'playlist-read-private',
       'playlist-read-collaborative',
-      'streaming'
-    ]
+      'playlist-modify-public',
+      'playlist-modify-private',
+      'playlist-modify',
+      'streaming',
+      'user-library-read',
+      'user-library-modify'
+    ].join(' ')
     
-    // Get current URI for better redirect handling
-    let redirectUri = config.public.spotifyRedirectUri
+    const params = new URLSearchParams({
+      client_id: config.public.spotifyClientId,
+      response_type: 'code',
+      redirect_uri: config.public.spotifyRedirectUri,
+      scope: scopes,
+      show_dialog: 'true',  // Force re-authentication
+      state: generateRandomString(16)  // Add state parameter for security
+    })
     
-    // Ensure we're not trying to use a production URI in local development
-    if (process.client && window.location.hostname === 'localhost' && 
-        !redirectUri.includes('localhost')) {
-      redirectUri = `http://${window.location.host}/callback`
-      console.warn('Using localhost redirect URI:', redirectUri)
-    }
-    
-    // Generate authorization URL manually if createAuthorizeURL is not available
-    try {
-      const state = generateRandomString(16)
-      let authorizeURL
-      
-      if (typeof spotifyApi.createAuthorizeURL === 'function') {
-        // Override the redirect URI for local development if needed
-        authorizeURL = spotifyApi.createAuthorizeURL(scopes, state)
-      } else {
-        // Manual URL creation as fallback
-        const scopeString = scopes.join(' ')
-        authorizeURL = 'https://accounts.spotify.com/authorize' +
-          '?client_id=' + config.public.spotifyClientId +
-          '&response_type=code' +
-          '&redirect_uri=' + encodeURIComponent(redirectUri) +
-          '&scope=' + encodeURIComponent(scopeString) +
-          '&state=' + state
-      }
-      
-      console.log('Redirecting to Spotify login:', authorizeURL)
-      window.location.href = authorizeURL
-    } catch (error) {
-      console.error('Error creating authorize URL:', error)
-      alert('Error connecting to Spotify. Please try again later.')
-    }
+    window.location.href = `https://accounts.spotify.com/authorize?${params.toString()}`
   }
 
   const handleCallback = async (code: string) => {
@@ -159,20 +169,13 @@ export const useSpotify = () => {
         body: JSON.stringify({ code })
       })
       
-      const responseText = await response.text()
-      let tokenData
-      
-      try {
-        tokenData = JSON.parse(responseText)
-      } catch (e) {
-        console.error('Failed to parse token response:', responseText)
-        throw new Error('Invalid response from server')
-      }
-      
       if (!response.ok) {
-        console.error('Token exchange failed:', tokenData)
-        throw new Error(tokenData.message || 'Failed to exchange token')
+        const errorData = await response.json()
+        console.error('Token exchange failed:', errorData)
+        throw new Error(errorData.message || 'Failed to exchange token')
       }
+      
+      const tokenData = await response.json()
       
       if (!tokenData.access_token || !tokenData.refresh_token) {
         console.error('Invalid token data received:', tokenData)
@@ -237,107 +240,6 @@ export const useSpotify = () => {
     })
   }
 
-  // const getMadeForYouPlaylists = async () => {
-  //   return callWithTokenRefresh(async () => {
-  //     try {
-  //       const response = await spotifyApi.getUserPlaylists()
-  //       const madeForYou = response.body.items.filter(playlist =>
-  //         /made for you|discover weekly|release radar|your mix/i.test(playlist.name)
-  //       )
-  //       return madeForYou
-  //     } catch (error) {
-  //       console.error('Error getting Made For You playlists:', error)
-  //       throw error
-  //     }
-  //   })
-  // }
-
-  const getMadeForYouPlaylists = async () => {
-    return callWithTokenRefresh(async () => {
-      try {
-        const response = await spotifyApi.getUserPlaylists()
-        return response.body.items
-      } catch (error) {
-        console.error('Error getting user playlists:', error)
-        throw error
-      }
-    })
-  }
-
-
-  // Add these methods to your useSpotify composable
-
-// const getFeaturedPlaylists = async (limit = 6) => {
-//   return callWithTokenRefresh(async () => {
-//     try {
-//       const response = await spotifyApi.getFeaturedPlaylists({
-//         limit,
-//         country: 'US' // You can make this dynamic based on user location
-//       })
-//       return response.body.playlists.items.map((playlist: any) => ({
-//         id: playlist.id,
-//         name: playlist.name,
-//         description: playlist.description,
-//         imageUrl: playlist.images[0]?.url || '/placeholder.png',
-//         uri: playlist.uri
-//       }))
-//     } catch (error) {
-//       console.error('Error getting featured playlists:', error)
-//       throw error
-//     }
-//   })
-// }
-
-// const getMadeForYouPlaylists = async (limit = 6) => {
-//   return callWithTokenRefresh(async () => {
-//     try {
-//       // First get the current user's ID
-//       const meResponse = await spotifyApi.getMe()
-//       const userId = meResponse.body.id
-      
-//       // Then get the "Made For You" playlists (Spotify's personalized playlists)
-//       const response = await spotifyApi.getUserPlaylists(userId, {
-//         limit,
-//         offset: 0
-//       })
-      
-//       // Filter for "Made For You" type playlists
-//       const madeForYouPlaylists = response.body.items.filter((playlist: any) => {
-//         return (
-//           playlist.owner.id === 'spotify' && 
-//           playlist.name.includes('Made For You')
-//         )
-//       })
-      
-//       // If we didn't get enough, fall back to other personalized playlists
-//       if (madeForYouPlaylists.length < limit) {
-//         const additionalPlaylists = response.body.items.filter((playlist: any) => {
-//           return (
-//             playlist.owner.id === 'spotify' && 
-//             (playlist.name.includes('Discover Weekly') || 
-//              playlist.name.includes('Daily Mix') ||
-//              playlist.name.includes('Release Radar'))
-//           )
-//         })
-//         madeForYouPlaylists.push(...additionalPlaylists.slice(0, limit - madeForYouPlaylists.length))
-//       }
-      
-//       return madeForYouPlaylists.map((playlist: any) => ({
-//         id: playlist.id,
-//         name: playlist.name,
-//         description: playlist.description || `Your personalized ${playlist.name}`,
-//         imageUrl: playlist.images[0]?.url || '/placeholder.png',
-//         uri: playlist.uri
-//       }))
-//     } catch (error) {
-//       console.error('Error getting made for you playlists:', error)
-//       throw error
-//     }
-//   })
-// }
-
-
-
   const getMyTopArtists = async () => {
     return callWithTokenRefresh(async () => {
       try {
@@ -349,8 +251,6 @@ export const useSpotify = () => {
       }
     })
   }
-
-
 
   const getMyRecentlyPlayed = async () => {
     return callWithTokenRefresh(async () => {
@@ -364,6 +264,30 @@ export const useSpotify = () => {
     })
   }
 
+  const getMyuniqueRecentlyPlayed = async () => {
+  return callWithTokenRefresh(async () => {
+    try {
+      const response = await spotifyApi.getMyRecentlyPlayedTracks();
+      const items = response.body.items;
+
+      // Use a Set to remove duplicates based on track ID
+      const seen = new Set();
+      const uniqueItems = items.filter(item => {
+        const trackId = item.track?.id;
+        if (seen.has(trackId)) return false;
+        seen.add(trackId);
+        return true;
+      });
+
+      return uniqueItems;
+    } catch (error) {
+      console.error('Error getting recently played tracks:', error);
+      throw error;
+    }
+  });
+};
+
+
   const searchTracks = async (query: string) => {
     return callWithTokenRefresh(async () => {
       try {
@@ -371,6 +295,30 @@ export const useSpotify = () => {
         return response.body.tracks?.items || []
       } catch (error) {
         console.error('Error searching tracks:', error)
+        throw error
+      }
+    })
+  }
+
+  const searchArtists = async (query: string) => {
+    return callWithTokenRefresh(async () => {
+      try {
+        const response = await spotifyApi.searchArtists(query)
+        return response.body.artists?.items || []
+      } catch (error) {
+        console.error('Error searching artists:', error)
+        throw error
+      }
+    })
+  }
+
+  const getCategories = async () => {
+    return callWithTokenRefresh(async () => {
+      try {
+        const response = await spotifyApi.getCategories()
+        return response.body
+      } catch (error) {
+        console.error('Error getting categories:', error)
         throw error
       }
     })
@@ -413,6 +361,139 @@ export const useSpotify = () => {
     })
   }
 
+  // Add these functions before the return statement
+  const getUserProfile = async () => {
+    return callWithTokenRefresh(async () => {
+      try {
+        const response = await spotifyApi.getMe()
+        return response
+      } catch (error) {
+        console.error('Error fetching user profile:', error)
+        throw error
+      }
+    })
+  }
+
+  const getUserPlaylists = async (limit = 50) => {
+    return callWithTokenRefresh(async () => {
+      try {
+        const response = await spotifyApi.getUserPlaylists({ limit })
+        return response.body.items
+      } catch (error) {
+        console.error('Error fetching user playlists:', error)
+        throw error
+      }
+    })
+  }
+
+  const getUseruniquePlaylists = async (limit = 50) => {
+  return callWithTokenRefresh(async () => {
+    try {
+      const response = await spotifyApi.getUserPlaylists({ limit });
+      const items = response.body.items;
+
+      // Remove duplicates based on playlist ID
+      const seen = new Set();
+      const uniqueItems = items.filter(item => {
+        if (seen.has(item.id)) return false;
+        seen.add(item.id);
+        return true;
+      });
+
+      return uniqueItems;
+    } catch (error) {
+      console.error('Error fetching user playlists:', error);
+      throw error;
+    }
+  });
+};
+
+
+  const getPlaylistTracks = async (playlistId: string) => {
+    return callWithTokenRefresh(async () => {
+      try {
+        const response = await spotifyApi.getPlaylistTracks(playlistId)
+        return response.body.items
+      } catch (error) {
+        console.error('Error fetching playlist tracks:', error)
+        throw error
+      }
+    })
+  }
+
+  const getLikedSongs = async (limit = 50) => {
+    return callWithTokenRefresh(async () => {
+      try {
+        const response = await spotifyApi.getMySavedTracks({ limit })
+        return response.body.items
+      } catch (error) {
+        console.error('Error fetching liked songs:', error)
+        throw error
+      }
+    })
+  }
+
+  // Create a new playlist
+  const createPlaylist = async (name: string, description?: string) => {
+    return callWithTokenRefresh(async () => {
+      try {
+        // Get current user's ID
+        const me = await spotifyApi.getMe()
+        const userId = me.body.id
+
+        // Create the playlist
+        const response = await spotifyApi.createPlaylist(name, {
+          description: description || undefined,
+          public: false
+        })
+
+        return response.body
+      } catch (error) {
+        console.error('Error creating playlist:', error)
+        throw error
+      }
+    })
+  }
+
+  // Get artist's top tracks
+  const getArtistTopTracks = async (artistId: string) => {
+    return callWithTokenRefresh(async () => {
+      try {
+        const response = await spotifyApi.getArtistTopTracks(artistId, 'US')
+        return response.body.tracks
+      } catch (error) {
+        console.error('Error fetching artist top tracks:', error)
+        throw error
+      }
+    })
+  }
+
+  // Get artist details
+  const getArtist = async (artistId: string) => {
+    return callWithTokenRefresh(async () => {
+      try {
+        const response = await spotifyApi.getArtist(artistId)
+        return response.body
+      } catch (error) {
+        console.error('Error fetching artist details:', error)
+        throw error
+      }
+    })
+  }
+
+  // Transfer playback to a specific device
+  const transferMyPlayback = async (deviceIds: string[], options: { play?: boolean } = {}) => {
+    return callWithTokenRefresh(async () => {
+      try {
+        await spotifyApi.transferMyPlayback(deviceIds, options)
+        return true
+      } catch (error) {
+        console.error('Error transferring playback:', error)
+        throw error
+      }
+    })
+  }
+
   console.log('SpotifyWebApi initialized with redirect URI:', config.public.spotifyRedirectUri)
 
   return {
@@ -423,14 +504,23 @@ export const useSpotify = () => {
     hasToken,
     isConnected,
     getFeaturedPlaylists,
-    getMadeForYouPlaylists,
     getMyTopArtists,
     getMyRecentlyPlayed,
+    getMyuniqueRecentlyPlayed,
     searchTracks,
+    searchArtists,
+    getCategories,
     spotifyApi,
     refreshAccessToken,
-    play
+    play,
+    getUserProfile,
+    getUserPlaylists,
+    getUseruniquePlaylists,
+    getPlaylistTracks,
+    getLikedSongs,
+    createPlaylist,
+    getArtistTopTracks,
+    getArtist,
+    transferMyPlayback
   }
 } 
-
-
