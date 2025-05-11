@@ -10,22 +10,39 @@
           </svg>
           <span class="spotify-logo mb-0"> Spotify</span> </div>
         <!-- <h3 class="spotify-logo mb-0">Spotify</h3> -->
-        <div class="dropdown me-2">
-                <button class="btn btn-dark rounded-circle dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                  <img v-if="user?.photoURL" :src="user.photoURL" :alt="user?.displayName || 'User'" 
-                      class="rounded-circle" width="32" height="32">
-                  <i v-else class="bi bi-person"></i>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end" aria-labelledby="dropdownMenuButton">
-                  <li class="dropdown-item-text text-white">User: {{ user?.displayName || user?.email?.split('@')[0] }}</li>
-                  <li><hr class="dropdown-divider"></li>
-                  <li><NuxtLink to="/profile" class="dropdown-item">Edit profile</NuxtLink></li>
-                  <!-- <li><NuxtLink to="/debug-auth" class="dropdown-item">Debug Auth</NuxtLink></li> -->
-                  <li><NuxtLink to="/logout" class="dropdown-item">
-                    <span class="text-danger"><i class="bi bi-box-arrow-right me-2"></i>Log out</span>
-                  </NuxtLink></li>
-                </ul>
-              </div>
+        <div class="dropdown me-3">
+          <button class="btn btn-outline-light border-0 p-0 dropdown-toggle d-flex align-items-center" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+            <img 
+              v-if="user?.photoURL" 
+              :src="user.photoURL" 
+              :alt="user?.displayName || 'User'" 
+              class="rounded-circle shadow-sm" 
+              width="40" 
+              height="40"
+            >
+            <div v-else class="bg-secondary text-white rounded-circle d-flex justify-content-center align-items-center" style="width: 40px; height: 40px;">
+              <i class="bi bi-person fs-5"></i>
+            </div>
+          </button>
+
+          <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end mt-2 shadow" aria-labelledby="dropdownMenuButton">
+            <li class="dropdown-item-text text-white fw-semibold small">
+              {{ user?.displayName || user?.email?.split('@')[0] }}
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <NuxtLink to="/profile" class="dropdown-item">
+                <i class="bi bi-pencil me-2"></i>Edit profile
+              </NuxtLink>
+            </li>
+            <li>
+              <NuxtLink to="/logout" class="dropdown-item text-danger">
+                <i class="bi bi-box-arrow-right me-2"></i>Log out
+              </NuxtLink>
+            </li>
+          </ul>
+        </div>
+
       </div>
 
       <!-- Main Navigation -->
@@ -42,9 +59,7 @@
             </NuxtLink>
           </li>
           <li class="nav-item" v-if="isAuthenticated">
-            <NuxtLink to="/my-music" class="nav-link text-white d-flex align-items-center">
-              <i class="bi bi-music-note-list me-3"></i> My Music
-            </NuxtLink>
+            
           </li>
           <li class="nav-item">
             <!-- <NuxtLink to="/player" class="nav-link text-white d-flex align-items-center">
@@ -56,7 +71,7 @@
       </div>
 
       <!-- Spotify Connection Status -->
-      <div v-if="isAuthenticated && !isSpotifyConnected" class="spotify-status-panel p-3 mb-3 rounded-3 bg-dark-subtle">
+      <div v-if="isAuthenticated && !isConnected" class="spotify-status-panel p-3 mb-3 rounded-3 bg-dark-subtle">
         <div class="d-flex align-items-center justify-content-between mb-2">
           <h6 class="mb-0">Connect to Spotify</h6>
         </div>
@@ -66,59 +81,102 @@
         </button>
       </div>
 
-      <!-- Library Section -->
       <div class="library-section">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h6 class="library text-muted mb-0">Library</h6>
-          <div class="buttons">
-          <button 
-            @click="createPlaylist" 
-            class="btn btn-link text-white p-0"
-            :disabled="!isConnected"
-          >
-            <i class="bi bi-plus-lg"></i>
-          </button>
-            <NuxtLink 
-              to="/my-music"
-              class="btn btn-link text-white p-0 text-decoration-none"
-            >
-              <div class="view"> View All </div>
-          </NuxtLink>
-          </div>
-        </div>
-        
-        <!-- Playlists -->
-        <div class="playlists">
-          <div v-if="isLoading" class="text-center py-3">
-            <div class="spinner-border spinner-border-sm text-light" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-          </div>
-          
-          <div v-else>
-            <div v-for="playlist in userPlaylists.slice(0,4)" :key="playlist.id" class="playlist-item">
-              <NuxtLink 
-                :to="`/playlist/${playlist.id}`" 
-                class="d-flex align-items-center text-white text-decoration-none py-2 px-3 rounded"
-                :class="{ 'active': route.path === `/playlist/${playlist.id}` }"
-              >
-                <img 
-                  :src="playlist.images?.[0]?.url || '/img/placeholder-playlist.png'" 
-                  :alt="playlist.name"
-                  class="playlist-cover me-3"
-                >
-                <div class="flex-grow-1">
-                  <div class="text-truncate">{{ playlist.name }}</div>
-                  <div class="text-muted small text-truncate">
-                    {{ playlist.tracks.total }} tracks
-                  </div>
-                </div>
-              </NuxtLink>
-            </div>
-          </div>
-        </div>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h6 class="library text-muted mb-0">
+      <NuxtLink to="/my-music" class="nav-link text-white d-flex align-items-center">
+        <i class="bi bi-music-note-list me-3"></i> Library
+      </NuxtLink>
+    </h6>
+    <div class="buttons">
+      <button 
+        @click="createPlaylist" 
+        class="btn btn-link text-white p-0"
+        :disabled="!isConnected"
+      >
+        <i class="bi bi-plus-lg"></i>
+      </button>
+      <NuxtLink 
+        to="/my-music"
+        class="btn btn-link text-white p-0 text-decoration-none"
+      >
+        <div class="view"> View All </div>
+      </NuxtLink>
+    </div>
+  </div>
+
+  <!-- 🔍 Search Bar -->
+  <div class="inputbar input-group mb-3">
+  <span class="input-group-text bg-dark border-secondary text-light">
+    <i class="bi bi-search"></i>
+  </span>
+  <input
+    type="text"
+    class="form-control bg-dark border-secondary text-light"
+    v-model="searchQuery"
+    placeholder="Search playlists..."
+    aria-label="Search"
+  />
+</div>
+
+  <!-- Playlists -->
+  <div class="playlists">
+    <div v-if="isLoading" class="text-center py-3">
+      <div class="spinner-border spinner-border-sm text-light" role="status">
+        <span class="visually-hidden">Loading...</span>
       </div>
+    </div>
+
+    <div v-else>
+      <NuxtLink 
+        to="/likedsongs" 
+        class="d-flex align-items-center text-white text-decoration-none py-2 px-3 rounded"
+      >
+        <img 
+          src="https://misc.scdn.co/liked-songs/liked-songs-640.png" 
+          alt="likedsongs"
+          class="playlist-cover me-3"
+        >
+        <div class="flex-grow-1">
+          <div class="text-truncate">Liked songs</div>
+          <div class="text-muted small text-truncate">📌</div>
+        </div>
+      </NuxtLink>
+
+      <!-- 🔁 Filtered Playlists -->
+      <div 
+        v-for="playlist in filteredPlaylists" 
+        :key="playlist.id" 
+        class="playlist-item"
+      >
+        <NuxtLink 
+          :to="`/playlist/${playlist.id}`" 
+          class="d-flex align-items-center text-white text-decoration-none py-2 px-3 rounded"
+          :class="{ 'active': route.path === `/playlist/${playlist.id}` }"
+        >
+          <img 
+            :src="playlist.images?.[0]?.url || '/img/placeholder-playlist.png'" 
+            :alt="playlist.name"
+            class="playlist-cover me-3"
+          >
+          <div class="flex-grow-1">
+            <div class="text-truncate">{{ playlist.name }}</div>
+            <div class="text-muted small text-truncate">
+              {{ playlist.tracks.total }} songs • {{ playlist.owner.display_name }}
+            </div>
+          </div>
+        </NuxtLink>
+      </div>
+    </div>
+  </div>
+</div>
+
+        
+      
     </nav>
+
+
+
 
 
     <main class="main-content">
@@ -353,6 +411,20 @@ const handleTrackSelect = (track: any) => {
 const updateVolume = () => {
   setVolume(volume.value)
 }
+
+
+
+
+// Search query
+const searchQuery = ref('')
+
+
+// Filtered playlists based on search query
+const filteredPlaylists = computed(() =>
+  userPlaylists.value.filter(playlist =>
+    playlist.name?.toLowerCase().includes(searchQuery.value.toLowerCase())
+  )
+)
 </script>
 
 <style scoped>
@@ -644,7 +716,7 @@ h1 {
   }
 
 .library{
-  margin-left: 10px
+  margin-left: 20px
 }
 
 .welcome-banner h3 {
@@ -661,6 +733,26 @@ h1 {
   opacity: 0.8;
   line-height: 1.5;
 }
+
+.inputbar {
+  margin-left: 20px;
+  max-width: 200px;
+  font-size: 0.875rem;
+}
+
+.inputbar input::placeholder {
+  color: #ccc !important; /* Make placeholder more visible */
+  opacity: 1; /* Fix for Firefox */
+}
+
+.inputbar .input-group-text {
+  padding: 0.375rem 0.5rem;
+}
+
+.inputbar .form-control {
+  padding: 0.375rem 0.5rem;
+}
+
 </style> 
 
 

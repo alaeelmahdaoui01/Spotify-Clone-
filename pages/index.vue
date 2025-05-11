@@ -33,68 +33,78 @@
     <div v-else>
       <!-- Recently Played Section -->
       <section class="mb-5">
-        <h2 class="mb-4">Recently Played</h2>
-        <div class="row g-4">
-          <div v-for="item in recentlyPlayed" :key="item.track.id" class="col-md-4 col-lg-3">
-            <div class="card bg-dark text-white h-100">
-              <img 
-                :src="item.track.album.images[0].url" 
-                class="card-img-top" 
-                :alt="item.track.name"
-              >
-              <div class="card-body position-relative">
-                <h5 class="card-title">{{ item.track.name }}</h5>
-                <p class="card-text text-muted small">
-                  {{ item.track.artists.map(a => a.name).join(', ') }}
-                </p>
-                <!-- <button 
-                  
-                > -->
-                  
-                    <button @click="playTrack(item.track)" 
-                  class="play-button-overlay btn btn-success rounded-circle"
-                  :disabled="!isPlayerReady"
-                  >
-                      <i class="bi bi-play-fill fs-4"></i>
-                    </button>
-                <!-- </button> -->
-              </div>
-            </div>
-          </div>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Recently Played</h2>
+    <NuxtLink to="/recentlyplayed" class="">
+      View all
+    </NuxtLink>
+  </div>
+
+  <div class="row g-4">
+    <div v-for="item in recentlyPlayed.slice(0,4)" :key="item.track.id" class="col-md-4 col-lg-3">
+      <div class="card bg-dark text-white h-100">
+        <img 
+          :src="item.track.album.images[0].url" 
+          class="card-img-top" 
+          :alt="item.track.name"
+        >
+        <div class="card-body position-relative">
+          <h5 class="card-title">{{ item.track.name }}</h5>
+          <p class="card-text text-muted small">
+            {{ item.track.artists.map(a => a.name).join(', ') }}
+          </p>
+          <button 
+            @click="playTrack(item.track)" 
+            class="play-button-overlay btn btn-success rounded-circle"
+            :disabled="!isPlayerReady"
+          >
+            <i class="bi bi-play-fill fs-4"></i>
+          </button>
         </div>
-      </section>
+      </div>
+    </div>
+  </div>
+</section>
+
 
       <section class="mb-5">
-        <h2 class="mb-4">Your Latest Liked Songs</h2>
-        <div class="row g-4">
-          <div v-for="item in likedSongs.slice(0,4)" :key="item.track.id" class="col-md-4 col-lg-3">
-            <div class="card bg-dark text-white h-100">
-              <img 
-                :src="item.track.album.images[0].url" 
-                class="card-img-top" 
-                :alt="item.track.name"
-              >
-              <div class="card-body position-relative">
-                <h5 class="card-title">{{ item.track.name }}</h5>
-                <p class="card-text text-muted small">
-                  {{ item.track.artists.map(a => a.name).join(', ') }}
-                </p>
-                <!-- <button 
-                  
-                > -->
-                  
-                    <button @click="playTrack(item.track)" 
-                  class="play-button-overlay btn btn-success rounded-circle"
-                  :disabled="!isPlayerReady"
-                  >
-                      <i class="bi bi-play-fill fs-4"></i>
-                    </button>
-                <!-- </button> -->
-              </div>
-            </div>
-          </div>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Your Latest Liked Songs</h2>
+    <NuxtLink to="/likedsongs" class="">
+      View all
+    </NuxtLink>
+  </div>
+
+  <div class="row g-4">
+    <div
+      v-for="item in likedSongs.slice(0,4)"
+      :key="item.track.id"
+      class="col-md-4 col-lg-3"
+    >
+      <div class="card bg-dark text-white h-100">
+        <img 
+          :src="item.track.album.images[0].url" 
+          class="card-img-top" 
+          :alt="item.track.name"
+        >
+        <div class="card-body position-relative">
+          <h5 class="card-title">{{ item.track.name }}</h5>
+          <p class="card-text text-muted small">
+            {{ item.track.artists.map(a => a.name).join(', ') }}
+          </p>
+          <button 
+            @click="playTrack(item.track)" 
+            class="play-button-overlay btn btn-success rounded-circle"
+            :disabled="!isPlayerReady"
+          >
+            <i class="bi bi-play-fill fs-4"></i>
+          </button>
         </div>
-      </section>
+      </div>
+    </div>
+  </div>
+</section>
+
 
       <!-- Your Playlists Section -->
       <section class="mb-5">
@@ -110,7 +120,7 @@
               <div class="card-body">
                 <h5 class="card-title">{{ playlist.name }}</h5>
                 <p class="card-text text-muted small">
-                  {{ playlist.tracks.total }} tracks • By {{ playlist.owner.display_name }}
+                  {{ playlist.tracks.total }} songs • {{ playlist.owner.display_name }}
                 </p>
                 <div class="d-flex gap-2">
                   <!-- <button 
@@ -156,7 +166,7 @@
               <div class="card-body">
                 <h5 class="card-title">{{ playlist.name }}</h5>
                 <p class="card-text text-muted small">
-                  {{ playlist.tracks.total }} tracks • By {{ playlist.owner.display_name }}
+                  {{ playlist.tracks.total }} songs - By {{ playlist.owner.display_name }}
                 </p>
                 <div class="d-flex gap-2">
                   <!-- <button 

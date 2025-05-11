@@ -23,7 +23,7 @@
       </button>
     </div>
 
-    <!-- Connection Status -->
+
     <div v-else-if="!isConnected" class="alert alert-info m-3">
       <div class="d-flex align-items-center">
         <i class="bi bi-spotify me-2"></i>
@@ -38,29 +38,10 @@
       </button>
     </div>
 
-    <!-- Music Content -->
     <div v-else>
-      <!-- User Profile -->
-      <!-- <div v-if="userProfile" class="user-profile p-4">
-        <div class="d-flex align-items-center">
-          <img 
-            v-if="userProfile.images?.[0]?.url" 
-            :src="userProfile.images[0].url" 
-            class="rounded-circle me-3" 
-            width="64" 
-            height="64" 
-            :alt="userProfile.display_name"
-          >
-          <div>
-            <h2 class="mb-1">{{ userProfile.display_name }}</h2>
-            <p class="text-muted mb-0">{{ userProfile.followers?.total }} followers</p>
-          </div>
-        </div>
-      </div> -->
-
-      <!-- Playlists Section -->
+      
       <div class="playlists-section p-4">
-        <h3 class="mb-4">Your Playlists</h3>
+        <h3 class="mb-4">All your playlists</h3>
         <div class="row g-4">
           <div v-for="playlist in userPlaylists" :key="playlist.id" class="col-md-4 col-lg-3">
             <div class="card bg-dark text-white h-100">
@@ -72,22 +53,17 @@
               <div class="card-body">
                 <h5 class="card-title">{{ playlist.name }}</h5>
                 <p class="card-text text-muted small">
-                  {{ playlist.tracks.total }} tracks • By {{ playlist.owner.display_name }}
+                  {{ playlist.tracks.total }} songs • {{ playlist.owner.display_name }}
                 </p>
                 <div class="d-flex gap-2">
-                  <button 
-                    @click="playPlaylist(playlist)" 
-                    class="btn btn-success btn-sm"
-                    :disabled="!isPlayerReady"
-                  >
-                    <i class="bi bi-play-fill"></i> Play
-                  </button>
+
                   <NuxtLink 
                     :to="`/playlist/${playlist.id}`" 
-                    class="btn btn-outline-light btn-sm"
+                  class="play-button-overlay2 btn  btn-sm"
                   >
-                    <i class="bi bi-list"></i> View Tracks
-                  </NuxtLink>
+                      <i class="bi bi-play-fill fs-4"></i> View Playlist
+                    </NuxtLink>
+
                 </div>
               </div>
             </div>
@@ -95,7 +71,6 @@
         </div>
       </div>
 
-      <!-- Selected Playlist Tracks -->
       <div v-if="selectedPlaylist" class="playlist-tracks p-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
           <h3>{{ selectedPlaylist.name }}</h3>
@@ -148,7 +123,7 @@
         </div>
       </div>
 
-      <!-- Top Artists Section -->
+
       <div class="top-artists p-4">
         <h3 class="mb-4">Your Top Artists</h3>
         <div class="row g-4">
@@ -163,7 +138,7 @@
                 >
                 <div class="card-body">
                   <h5 class="card-title text-truncate">{{ artist.name }}</h5>
-                  <p class="card-text text-muted">Artist</p>
+                  
                 </div>
               </div>
             </NuxtLink>
@@ -171,41 +146,8 @@
         </div>
       </div>
 
-      <!-- Recently Played Section -->
-      <div class="recently-played p-4">
-        <h3 class="mb-4">Recently Played</h3>
-        <div class="list-group">
-          <div 
-            v-for="item in recentlyPlayed" 
-            :key="item.track.id" 
-            class="list-group-item bg-dark text-white border-secondary d-flex align-items-center"
-          >
-            <img 
-              :src="item.track.album.images[0].url" 
-              class="rounded me-3" 
-              width="56" 
-              height="56" 
-              :alt="item.track.name"
-            >
-            <div class="flex-grow-1">
-              <div class="track-name">{{ item.track.name }}</div>
-              <div class="artist-name text-muted small">
-                {{ item.track.artists.map(a => a.name).join(', ') }}
-              </div>
-            </div>
-            <div class="text-muted small me-3">
-              {{ formatDate(item.played_at) }}
-            </div>
-            <button 
-              @click="playTrack(item.track)" 
-              class="btn btn-link text-white"
-              :disabled="!isPlayerReady"
-            >
-              <i class="bi bi-play-fill"></i>
-            </button>
-          </div>
-        </div>
-      </div>
+
+      
     </div>
   </div>
 </template>
@@ -483,4 +425,112 @@ const playPlaylist = async (playlist: SpotifyPlaylist) => {
 .user-profile img {
   border: 3px solid white;
 }
+
+.card {
+  transition: transform 0.2s;
+  cursor: pointer;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}
+
+.card-img-top {
+  height: 200px;
+  object-fit: cover;
+}
+
+
+/* .play-button-overlay {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: all 0.3s;
+  background-color: #1DB954;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+} */
+
+/* 
+.play-button-overlay:hover {
+  transform: scale(1.1) !important;
+  background-color: #1ed760 !important;
+} */
+
+.card {
+  transition: transform 0.2s;
+  cursor: pointer;
+  position: relative; /* Ensure the play button is positioned relative to the card */
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}
+
+.card-img-top {
+  height: 200px;
+  object-fit: cover;
+}
+
+.play-button-overlay {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  opacity: 0; /* Hidden by default */
+  transform: translateY(8px); /* Slightly moved down */
+  transition: all 0.3s;
+  background-color: #1DB954;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%; /* Make it circular */
+}
+
+.card:hover .play-button-overlay {
+  opacity: 1; /* Make the button visible */
+  transform: translateY(0); /* Reset the position */
+}
+
+.play-button-overlay i {
+  color: white; /* Ensure the play icon is visible */
+  font-size: 24px; /* Adjust the size of the play icon */
+}
+
+
+.play-button-overlay2 {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  opacity: 0; /* Hidden by default */
+  transform: translateY(8px); /* Slightly moved down */
+  transition: all 0.3s;
+  background-color: #1DB954;
+  width: 100px;
+  height: 48px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px; /* Make it circular */
+}
+
+.card:hover .play-button-overlay2 {
+  opacity: 1; /* Make the button visible */
+  transform: translateY(0); /* Reset the position */
+}
+
+.play-button-overlay2 i {
+  color: white; /* Ensure the play icon is visible */
+  font-size: 24px; /* Adjust the size of the play icon */
+}
+
 </style> 

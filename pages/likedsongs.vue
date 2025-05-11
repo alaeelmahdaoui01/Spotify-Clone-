@@ -61,7 +61,10 @@
                 <i class="bi bi-play-fill fs-4"></i>
                 
               </button>
-
+              <!-- <button class="btn btn-outline-light rounded-pill px-4">
+                <i class="bi bi-shuffle me-2"></i>
+                Shuffle
+              </button> -->
             </div>
           </div>
         </div>
@@ -140,7 +143,8 @@ interface SpotifyPlaylist {
 }
 
 const route = useRoute()
-const { getPlaylistTracks, play } = useSpotify()
+const { getLikedSongs, play } = useSpotify()
+
 const { playTrack: playerPlayTrack, isPlayerReady } = useSpotifyPlayer()
 
 const isLoading = ref(true)
@@ -160,39 +164,33 @@ const headerStyle = computed(() => {
 })
 
 // Load playlist data
-const loadPlaylist = async () => {
-  const playlistId = route.params.id as string
-  if (!playlistId) {
-    error.value = 'No playlist ID provided'
-    return
-  }
-
+const loadLikedSongs = async () => {
   try {
     isLoading.value = true
     error.value = null
-    
-    // Load playlist tracks
-    const playlistTracks = await getPlaylistTracks(playlistId)
-    tracks.value = playlistTracks
-    
-    // Set playlist info from first track if available
-    if (playlistTracks.length > 0 && playlistTracks[0].track) {
+
+    // Get liked songs
+    const likedTracks = await getLikedSongs()
+    tracks.value = likedTracks
+
+    // Mock playlist data for header display
+    if (likedTracks.length > 0 && likedTracks[0].track) {
       playlist.value = {
-        id: playlistId,
-        name: 'Playlist', // This will be updated when we implement getPlaylist
+        id: 'liked-songs',
+        name: 'Liked Songs',
         description: null,
-        images: playlistTracks[0].track.album.images,
+        images: likedTracks[0].track.album.images,
         tracks: {
-          total: playlistTracks.length
+          total: likedTracks.length
         },
         owner: {
-          display_name: 'User'
+          display_name: 'You'
         }
       }
     }
   } catch (err) {
-    console.error('Error loading playlist:', err)
-    error.value = 'Failed to load playlist'
+    console.error('Error loading liked songs:', err)
+    error.value = 'Failed to load liked songs'
   } finally {
     isLoading.value = false
   }
@@ -222,9 +220,27 @@ const playPlaylist = async () => {
   }
 }
 
+// Format date to relative time
+// const formatDate = (dateString: string) => {
+//   const date = new Date(dateString)
+//   const now = new Date()
+//   const diffInMs = now.getTime() - date.getTime()
+  
+//   const diffInMinutes = Math.floor(diffInMs / 60000)
+//   const diffInHours = Math.floor(diffInMinutes / 60)
+//   const diffInDays = Math.floor(diffInHours / 24)
+  
+//   if (diffInMinutes < 60) {
+//     return `${diffInMinutes} ${diffInMinutes === 1 ? 'minute' : 'minutes'} ago`
+//   } else if (diffInHours < 24) {
+//     return `${diffInHours} ${diffInHours === 1 ? 'hour' : 'hours'} ago`
+//   } else {
+//     return `${diffInDays} ${diffInDays === 1 ? 'day' : 'days'} ago`
+//   }
+// }
 
 onMounted(() => {
-  loadPlaylist()
+  loadLikedSongs()
 })
 </script>
 

@@ -82,6 +82,8 @@
         </div>
       </section>
 
+      
+
       <!-- No Results -->
       <div v-if="!isLoading && tracks.length === 0 && artists.length === 0" class="text-center py-5">
         <p class="text-muted">No results found for "{{ searchQuery }}"</p>
