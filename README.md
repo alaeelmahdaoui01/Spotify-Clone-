@@ -8,7 +8,7 @@ Follow these instructions to set up and run the project locally.
 ### 1. Clone the Repository
 
 
-git clone https://github.com/alaeelmahdaoui01/Spotify-Clone-.git
+git clone https://github.com/alaeelmahdaoui01/Spotify-Clone-.git  <br>
 cd spotify-clone
 
 ### 2. Install Dependencies
@@ -16,7 +16,8 @@ cd spotify-clone
 npm install
 
 ### 3. Set Up Environment Variables
-Create a .env file in the root directory of the project.
+
+Create a .env file in the root directory of the project. <br>
 by copying the example file: .env.example
 
 ### 4. Spotify Developer Setup
