@@ -80,7 +80,7 @@ onMounted(async () => {
     
     // Redirect to the music page on success
     console.log('Redirecting to /my-music')
-    router.push('/my-music')
+    router.push('/')
   } catch (e: any) {
     console.error('Error processing Spotify callback:', e)
     error.value = e.message || 'An error occurred while connecting to Spotify'

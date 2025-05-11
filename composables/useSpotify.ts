@@ -455,6 +455,24 @@ export const useSpotify = () => {
     })
   }
 
+  // Add tracks to a playlist
+  const addTracksToPlaylist = async (playlistId: string, trackUris: string[]) => {
+    return callWithTokenRefresh(async () => {
+      try {
+        // Spotify API has a limit of 100 tracks per request
+        const chunkSize = 100
+        for (let i = 0; i < trackUris.length; i += chunkSize) {
+          const chunk = trackUris.slice(i, i + chunkSize)
+          await spotifyApi.addTracksToPlaylist(playlistId, chunk)
+        }
+        return true
+      } catch (error) {
+        console.error('Error adding tracks to playlist:', error)
+        throw error
+      }
+    })
+  }
+
   // Get artist's top tracks
   const getArtistTopTracks = async (artistId: string) => {
     return callWithTokenRefresh(async () => {
@@ -519,6 +537,7 @@ export const useSpotify = () => {
     getPlaylistTracks,
     getLikedSongs,
     createPlaylist,
+    addTracksToPlaylist,
     getArtistTopTracks,
     getArtist,
     transferMyPlayback
