@@ -22,7 +22,7 @@ by copying the example file: .env.example
 
 ### 4. Spotify Developer Setup
 
-Go to the Spotify Developer Dashboard: https://developer.spotify.com/dashboard/applications
+Go to the Spotify Developer Dashboard: https://developer.spotify.com/dashboard
 
 Log in with your Spotify account (or sign up if you don't have one).
 
