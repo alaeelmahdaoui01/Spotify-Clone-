@@ -231,26 +231,17 @@
               </button>
             </div>
 
-            <div class="progress-container d-flex align-items-center gap-2 w-100 px-2">
-              <span class="time current-time">{{ formatTime(currentTime) }}</span>
-              <div class="progress flex-grow-1" style="height: 4px;" @click="seekTo">
-                <div 
-                  class="progress-bar bg-white" 
-                  role="progressbar" 
-                  :style="{ width: `${progressPercentage}%` }"
-                ></div>
-              </div>
-              <span class="time total-time">{{ formatTime(duration) }}</span>
-            </div>
+            
           </div>
 
           <div class="volume-controls d-flex align-items-center justify-content-end gap-3" style="width: 30%">
-            <button class="btn btn-link text-white ms-3">
-                <i class="bi bi-heart"></i>
-              </button>
-            <NuxtLink to="/player" @click="footer=false" class="btn btn-link text-white">
-              <i class="bi bi-arrows-angle-expand"></i>
+            <NuxtLink to="/player" @click="footer=false" class="text-decoration-none">
+              <div class="text-muted small d-flex align-items-center gap-2">
+                <i class="bi bi-music-player"></i>
+                <span>Click to open player</span>
+              </div>
             </NuxtLink>
+            
           </div>
         </div>
       </footer>
@@ -1198,6 +1189,20 @@ h1 {
 .buttons .btn-link.disabled:hover {
   background-color: transparent;
   transform: none;
+}
+
+.text-muted.small {
+  font-size: 13px;
+  color: #b3b3b3;
+  transition: color 0.2s ease;
+}
+
+.text-muted.small:hover {
+  color: #ffffff;
+}
+
+.bi-music-player {
+  font-size: 16px;
 }
 </style> 
 
