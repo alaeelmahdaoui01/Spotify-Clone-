@@ -75,38 +75,46 @@ export const useSpotify = () => {
       const refreshToken = localStorage.getItem('spotify_refresh_token')
       if (!refreshToken) {
         console.error('No refresh token available')
+        isConnected.value = false
         return null
       }
 
-      const params = new URLSearchParams({
-        grant_type: 'refresh_token',
-        refresh_token: refreshToken
-      })
-
-      const response = await fetch('https://accounts.spotify.com/api/token', {
+      // Call our server endpoint to refresh the token
+      const response = await fetch('/api/spotify/refresh', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Authorization': `Basic ${btoa(`${config.public.spotifyClientId}:${config.spotifyClientSecret}`)}`
+          'Content-Type': 'application/json'
         },
-        body: params.toString()
+        body: JSON.stringify({ refreshToken })
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        const errorData = await response.json()
-        console.error('Token refresh failed:', errorData)
-        throw new Error('Failed to refresh token')
+        console.error('Token refresh failed:', data)
+        isConnected.value = false
+        throw new Error(data.message || 'Failed to refresh token')
       }
 
-      const data = await response.json()
+      if (!data.access_token) {
+        console.error('Invalid token response:', data)
+        isConnected.value = false
+        throw new Error('Invalid token response from server')
+      }
+
+      // Update tokens
       const newAccessToken = data.access_token
       const newRefreshToken = data.refresh_token || refreshToken
+      const expiresIn = data.expires_in
 
+      // Store tokens
       localStorage.setItem('spotify_access_token', newAccessToken)
       if (data.refresh_token) {
         localStorage.setItem('spotify_refresh_token', newRefreshToken)
       }
+      localStorage.setItem('spotify_token_expires', (Date.now() + expiresIn * 1000).toString())
 
+      // Update API instance
       spotifyApi.setAccessToken(newAccessToken)
       isConnected.value = true
       return newAccessToken
@@ -208,21 +216,33 @@ export const useSpotify = () => {
       // Check if we have a token at all
       if (!spotifyApi.getAccessToken()) {
         console.error('No Spotify access token available')
+        isConnected.value = false
         return null
       }
       
       // Try the call
-      return await apiCall()
+      const result = await apiCall()
+      // If we get here, the call was successful, so we're definitely connected
+      isConnected.value = true
+      return result
     } catch (error: any) {
       // If token expired, refresh and try again
       if (error.statusCode === 401) {
         console.log('Token expired, refreshing...')
         const refreshed = await refreshAccessToken()
         if (refreshed) {
-          return await apiCall()
+          const result = await apiCall()
+          isConnected.value = true
+          return result
         } else {
+          isConnected.value = false
           throw new Error('Failed to refresh token')
         }
+      }
+      // For other errors, we might still be connected
+      // Only set to false if it's an authentication error
+      if (error.statusCode === 403 || error.statusCode === 401) {
+        isConnected.value = false
       }
       throw error
     }

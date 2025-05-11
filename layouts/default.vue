@@ -39,11 +39,6 @@
                 <i class="bi bi-person me-2"></i>Profile
               </NuxtLink>
             </li>
-            <li>
-              <NuxtLink to="/account" class="dropdown-item">
-                <i class="bi bi-gear me-2"></i>Account
-              </NuxtLink>
-            </li>
             <li><hr class="dropdown-divider"></li>
             <li>
               <NuxtLink to="/logout" class="dropdown-item text-danger">
@@ -60,7 +55,7 @@
         <ul class="nav flex-column">
           <li class="nav-item">
             <NuxtLink to="/" class="nav-link text-white d-flex align-items-center">
-              <i class="bi bi-house-door-fill me-3"></i> Home
+              <i class="bi bi-house me-3"></i> Home
             </NuxtLink>
           </li>
           <li class="nav-item">
@@ -75,17 +70,17 @@
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h6 class="library text-muted mb-0">
       <NuxtLink to="/my-music" class="nav-link text-white d-flex align-items-center">
-        <i class="bi bi-music-note-list me-3"></i> Library
+        <i class="bi bi-collection me-3"></i> Library
       </NuxtLink>
     </h6>
     <div class="buttons">
-      <button 
-        @click="createPlaylist" 
+      <NuxtLink 
+        to="/create-playlist" 
         class="btn btn-link text-white p-0"
-        :disabled="!isConnected"
+        :class="{ 'disabled': !isConnected }"
       >
         <i class="bi bi-plus-lg"></i>
-      </button>
+      </NuxtLink>
       <NuxtLink 
         to="/my-music"
         class="btn btn-link text-white p-0 text-decoration-none"
@@ -347,29 +342,6 @@ const loadPlaylists = async () => {
   }
 }
 
-// Create new playlist
-const createPlaylist = async () => {
-  if (!isConnected.value) return
-  
-  try {
-    const name = prompt('Enter playlist name:')
-    if (!name) return
-    
-    const description = prompt('Enter playlist description (optional):') || undefined
-    
-    const playlist = await spotifyCreatePlaylist(name, description)
-    if (playlist) {
-      // Reload playlists
-      await loadPlaylists()
-      // Navigate to the new playlist
-      router.push(`/playlist/${playlist.id}`)
-    }
-  } catch (error) {
-    console.error('Error creating playlist:', error)
-    alert('Failed to create playlist. Please try again.')
-  }
-}
-
 // Connect to Spotify
 const connectSpotify = () => {
   login()
@@ -478,7 +450,7 @@ const filteredPlaylists = computed(() =>
 <style scoped>
 .spotify-app {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: 300px 1fr; /* Fixed sidebar width */
   height: 100vh;
   background-color: #000000;
   color: white;
@@ -490,7 +462,10 @@ const filteredPlaylists = computed(() =>
   overflow-y: auto;
   background-color: #000000;
   border-right: 1px solid #282828;
-  
+  position: sticky; /* Change from fixed to sticky */
+  top: 0;
+  left: 0;
+  z-index: 50;
 }
 
 .topthing {
@@ -557,6 +532,8 @@ const filteredPlaylists = computed(() =>
   grid-template-rows: auto 1fr auto;
   height: 100vh;
   background: linear-gradient(to bottom, #1e1e1e, #121212);
+  position: relative;
+  margin-left: 0; /* Remove any margin since we're using grid */
 }
 
 .top-bar {
@@ -568,24 +545,210 @@ const filteredPlaylists = computed(() =>
 .content-area {
   overflow-y: auto;
   padding: 20px;
-}
-.now-playing-bar {
-  position: fixed; /* Fix the footer to the viewport */
-  bottom: 0; /* Align it to the bottom of the viewport */
-  left: 0; /* Align it to the left edge */
-  width: 100%; /* Make it span the full width of the viewport */
-  max-height: 150px;
-  border-top: 1px solid #282828;
-  background-color: #000; /* Ensure it has a background to cover content behind it */
-  z-index: 1000; /* Ensure it stays above other elements */
-}
-.nav-link {
-  color: #b3b3b3;
-  transition: color 0.2s;
+  padding-bottom: 90px; /* Add padding for the now playing bar */
 }
 
-.nav-link:hover, .nav-link.active {
-  color: white !important;
+.now-playing-bar {
+  position: fixed;
+  bottom: 0;
+  left: 300px; /* Offset by sidebar width */
+  width: calc(100% - 300px); /* Subtract sidebar width */
+  height: 90px;
+  border-top: 1px solid #282828;
+  background-color: #000;
+  z-index: 1000;
+  padding: 0 16px;
+}
+
+.nav-link {
+  font-size: 14px;
+  font-weight: 500;
+  color: #b3b3b3;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  margin: 4px 0;
+  letter-spacing: 0.01em;
+}
+
+.nav-link:hover {
+  color: #ffffff !important;
+  background-color: rgba(255, 255, 255, 0.08);
+  transform: translateX(4px);
+}
+
+.nav-link.active {
+  color: #ffffff !important;
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.nav-link i {
+  font-size: 20px;
+  transition: transform 0.2s ease;
+}
+
+.nav-link:hover i {
+  transform: scale(1.1);
+}
+
+.library {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #b3b3b3;
+  margin-left: 16px;
+  padding: 8px 0;
+}
+
+.library .nav-link {
+  padding: 8px 0;
+  margin: 0;
+}
+
+.library .nav-link:hover {
+  transform: none;
+  background-color: transparent;
+}
+
+.library .nav-link:hover i {
+  color: #ffffff;
+}
+
+.bi-collection {
+  font-size: 20px;
+  color: #b3b3b3;
+  transition: color 0.2s ease;
+}
+
+.buttons .btn-link {
+  color: #b3b3b3;
+  padding: 4px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+
+.buttons .btn-link:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: scale(1.1);
+}
+
+.buttons .bi-plus-lg {
+  font-size: 20px;
+  transition: transform 0.2s ease;
+}
+
+.buttons .btn-link:hover .bi-plus-lg {
+  transform: rotate(90deg);
+}
+
+.view {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1DB954;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 4px 8px;
+  letter-spacing: 0.01em;
+}
+
+.view:hover {
+  color: #1ed760;
+  transform: scale(1.05);
+}
+
+.inputbar {
+  margin: 8px 16px 16px;
+  max-width: 180px;
+  position: relative;
+}
+
+.inputbar .input-group {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  height: 32px;
+}
+
+.inputbar .input-group:focus-within {
+  background-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+}
+
+.inputbar .input-group-text {
+  background: transparent;
+  border: none;
+  color: #b3b3b3;
+  padding: 6px 8px;
+  font-size: 14px;
+}
+
+.inputbar .form-control {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  padding: 6px 8px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  height: 32px;
+}
+
+.inputbar .form-control:focus {
+  box-shadow: none;
+  background: transparent;
+}
+
+.inputbar .form-control::placeholder {
+  color: #b3b3b3;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.playlist-item {
+  cursor: pointer;
+  transition: background-color 0.2s;
+  padding: 4px 0;
+}
+
+.playlist-item:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.playlist-item.active {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.playlist-cover {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.playlist-item:hover .playlist-cover {
+  transform: scale(1.02);
+}
+
+.playlist-item .text-truncate:first-child {
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: #ffffff;
+}
+
+.playlist-item .text-truncate:last-child {
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  color: #b3b3b3;
 }
 
 .play-button {
@@ -789,10 +952,6 @@ h1 {
   flex-direction: row;
   gap : 4px; 
   align-items: center 
-}
-
-.library{
-  margin-left: 20px
 }
 
 .welcome-banner h3 {
@@ -1006,6 +1165,39 @@ h1 {
 .player-controls .btn-link:disabled {
   opacity: 0.3;
   cursor: not-allowed;
+}
+
+/* Add responsive adjustments */
+@media (max-width: 768px) {
+  .spotify-app {
+    grid-template-columns: 1fr; /* Stack on mobile */
+  }
+
+  .sidebar {
+    position: fixed;
+    transform: translateX(-100%); /* Hide by default on mobile */
+    transition: transform 0.3s ease;
+  }
+
+  .sidebar.show {
+    transform: translateX(0); /* Show when active */
+  }
+
+  .now-playing-bar {
+    left: 0;
+    width: 100%;
+  }
+}
+
+.buttons .btn-link.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.buttons .btn-link.disabled:hover {
+  background-color: transparent;
+  transform: none;
 }
 </style> 
 
