@@ -21,7 +21,6 @@ export const useAuth = () => {
   const isLoading = ref(false)
   const authInitialized = ref(false)
 
-  // Initialize user on auth state change
   if (process.client) {
     const unsubscribe = onAuthStateChanged(auth, (userData) => {
       user.value = userData
@@ -37,7 +36,7 @@ export const useAuth = () => {
     })
   }
 
-  // Register with email and password
+
   const registerWithEmail = async (email: string, password: string) => {
     isLoading.value = true
     try {
@@ -51,7 +50,6 @@ export const useAuth = () => {
     }
   }
 
-  // Login with email and password
   const loginWithEmail = async (email: string, password: string) => {
     isLoading.value = true
     try {
@@ -64,14 +62,14 @@ export const useAuth = () => {
     }
   }
 
-  // Login with Google
+
   const loginWithGoogle = async () => {
     isLoading.value = true
     try {
       const provider = new GoogleAuthProvider()
       const userCredential = await signInWithPopup(auth, provider)
       
-      // Check if it's a new user and create profile
+
       const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid))
       if (!userDoc.exists()) {
         await createUserProfile(userCredential.user)
@@ -85,7 +83,7 @@ export const useAuth = () => {
     }
   }
 
-  // Logout
+
   const logout = async () => {
     isLoading.value = true
     try {
@@ -97,7 +95,7 @@ export const useAuth = () => {
     }
   }
 
-  // Reset password
+
   const resetPassword = async (email: string) => {
     isLoading.value = true
     try {
@@ -109,7 +107,6 @@ export const useAuth = () => {
     }
   }
 
-  // Update user profile
   const updateUserProfile = async (displayName?: string, photoURL?: string) => {
     if (!user.value) return
     
@@ -121,7 +118,7 @@ export const useAuth = () => {
       
       await updateProfile(user.value, updates)
       
-      // Update Firestore document
+   
       await setDoc(doc(db, 'users', user.value.uid), {
         displayName: displayName || user.value.displayName,
         photoURL: photoURL || user.value.photoURL,
@@ -134,7 +131,7 @@ export const useAuth = () => {
     }
   }
 
-  // Helper function to create user profile in Firestore
+
   const createUserProfile = async (user: User) => {
     try {
       const userRef = doc(db, 'users', user.uid)
@@ -151,7 +148,6 @@ export const useAuth = () => {
     }
   }
 
-  // Format Firebase error messages to user-friendly messages
   const formatFirebaseError = (error: any): string => {
     const errorCode = error.code || ''
     

@@ -82,14 +82,36 @@
         </div>
       </section>
 
-      
-
       <!-- No Results -->
       <div v-if="!isLoading && tracks.length === 0 && artists.length === 0" class="text-center py-5">
         <p class="text-muted">No results found for "{{ searchQuery }}"</p>
       </div>
     </div>
 
+    <!-- Top Artists Section (shown when no search query) -->
+    <div v-else class="p-4">
+      <section class="mb-5">
+        <h2 class="mb-4">Your Top Artists</h2>
+        <div class="row g-4">
+          <div v-for="artist in topArtists" :key="artist.id" class="col-md-4 col-lg-3">
+            <NuxtLink :to="`/artist/${artist.id}`" class="text-decoration-none">
+              <div class="card bg-dark text-white h-100">
+                <img 
+                  :src="artist.images[0]?.url" 
+                  :alt="artist.name"
+                  class="card-img-top"
+                  style="aspect-ratio: 1; object-fit: cover;"
+                >
+                <div class="card-body">
+                  <h5 class="card-title text-truncate">{{ artist.name }}</h5>
+                  <p class="card-text text-muted">Artist</p>
+                </div>
+              </div>
+            </NuxtLink>
+          </div>
+        </div>
+      </section>
+    </div>
   </div>
 </template>
 
@@ -120,22 +142,27 @@ interface SpotifyCategory {
   icons: { url: string }[]
 }
 
-const { searchTracks, searchArtists, getCategories } = useSpotify()
+const { searchTracks, searchArtists, getCategories, getMyTopArtists } = useSpotify()
 const { playTrack: playerPlayTrack, isPlayerReady } = useSpotifyPlayer()
 
 const searchQuery = ref('')
 const tracks = ref<SpotifyTrack[]>([])
 const artists = ref<SpotifyArtist[]>([])
 const categories = ref<SpotifyCategory[]>([])
+const topArtists = ref<SpotifyArtist[]>([])
 const isLoading = ref(false)
 
-// Load categories on mount
+// Load categories and top artists on mount
 onMounted(async () => {
   try {
-    const response = await getCategories()
-    categories.value = response.categories.items
+    const [categoriesData, artistsData] = await Promise.all([
+      getCategories(),
+      getMyTopArtists()
+    ])
+    categories.value = categoriesData.categories.items
+    topArtists.value = artistsData
   } catch (error) {
-    console.error('Error loading categories:', error)
+    console.error('Error loading initial data:', error)
   }
 })
 
@@ -163,25 +190,14 @@ const handleSearch = async () => {
   }
 }
 
-
-
 const playTrack = (track: SpotifyTrack) => {
-
-
   if (!isPlayerReady.value) {
     console.warn('Player not ready')
     return
   }
   playerPlayTrack(track.uri)
-
-
 }
-
 </script>
-
-
-
-
 
 <style scoped>
 .search-header {

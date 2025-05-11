@@ -12,10 +12,10 @@ export const useSpotifyPlayer = () => {
   const playerState = ref<Spotify.PlaybackState | null>(null)
   const playerError = ref<string | null>(null)
   
-  // Load the Spotify Web Playback SDK Script
+  
   const loadSpotifyScript = () => {
     return new Promise<void>((resolve, reject) => {
-      // If script already exists, don't add it again
+   
       if (document.getElementById('spotify-player')) {
         resolve()
         return
@@ -33,7 +33,7 @@ export const useSpotifyPlayer = () => {
     })
   }
   
-  // Initialize the player
+ 
   const initializePlayer = () => {
     console.log('[SpotifyPlayer] initializePlayer called')
     if (!window.Spotify) {
@@ -74,7 +74,7 @@ export const useSpotifyPlayer = () => {
       volume: 0.5
     })
     
-    // Error handling
+  
     player.value.addListener('initialization_error', ({ message }) => {
       console.error('[SpotifyPlayer] Initialization error:', message)
       playerError.value = `Initialization error: ${message}`
@@ -98,7 +98,7 @@ export const useSpotifyPlayer = () => {
       playerError.value = `Playback error: ${message}`
     })
     
-    // Playback status updates
+  
     player.value.addListener('player_state_changed', (state) => {
       console.log('[SpotifyPlayer] player_state_changed', state)
       if (!state) {
@@ -119,18 +119,18 @@ export const useSpotifyPlayer = () => {
       }
     })
     
-    // Ready
+    
     player.value.addListener('ready', async ({ device_id }) => {
       console.log('[SpotifyPlayer] Ready with Device ID', device_id)
       deviceId.value = device_id
       
-      // Try to set this device as active
+      
       const success = await setActiveDevice()
       if (success) {
         isPlayerReady.value = true
         playerError.value = null
         
-        // Initialize playback state
+        
         try {
           if (player.value) {
             const state = await player.value.getCurrentState()
@@ -150,14 +150,14 @@ export const useSpotifyPlayer = () => {
       }
     })
     
-    // Not Ready
+    
     player.value.addListener('not_ready', ({ device_id }) => {
       console.log('[SpotifyPlayer] Device ID has gone offline', device_id)
       isPlayerReady.value = false
       deviceId.value = null
     })
     
-    // Connect to the player
+    
     player.value.connect().then(success => {
       if (success) {
         console.log('[SpotifyPlayer] Successfully connected to Spotify player')
@@ -173,7 +173,7 @@ export const useSpotifyPlayer = () => {
     })
   }
   
-  // Disconnect the player
+  
   const disconnect = () => {
     if (player.value) {
       player.value.disconnect()
@@ -192,7 +192,7 @@ export const useSpotifyPlayer = () => {
     volume_percent: number
   }
   
-  // Set this device as active
+ 
   const setActiveDevice = async () => {
     if (!deviceId.value) {
       console.error('[SpotifyPlayer] setActiveDevice: No device ID available')
@@ -200,7 +200,7 @@ export const useSpotifyPlayer = () => {
     }
 
     try {
-      // First check if this device is already active
+      
       const response = await spotifyApi.getMyDevices()
       const devices = response.body.devices as SpotifyDevice[]
       const currentDevice = devices.find((d: SpotifyDevice) => d.id === deviceId.value)
@@ -210,14 +210,14 @@ export const useSpotifyPlayer = () => {
         return true
       }
 
-      // If not active, transfer playback to this device
+    
       await spotifyApi.transferMyPlayback([deviceId.value], { play: false })
       console.log('[SpotifyPlayer] setActiveDevice: Transferred playback to device', deviceId.value)
       
-      // Wait a moment for the transfer to complete
+     
       await new Promise(resolve => setTimeout(resolve, 1000))
       
-      // Verify the device is now active
+    
       const verifyResponse = await spotifyApi.getMyDevices()
       const verifyDevices = verifyResponse.body.devices as SpotifyDevice[]
       const verifyDevice = verifyDevices.find((d: SpotifyDevice) => d.id === deviceId.value)
@@ -234,7 +234,6 @@ export const useSpotifyPlayer = () => {
     }
   }
   
-  // Play a track
   const playTrack = async (trackUri: string) => {
     if (!isPlayerReady.value || !deviceId.value) {
       playerError.value = 'Player not ready'
@@ -242,17 +241,16 @@ export const useSpotifyPlayer = () => {
     }
     
     try {
-      // Ensure this device is active
+
       const success = await setActiveDevice()
       if (!success) {
         playerError.value = 'Failed to set device as active'
         return
       }
-      
-      // Wait a moment for device activation to settle
+    
       await new Promise(resolve => setTimeout(resolve, 500))
       
-      // First try to get the current state to ensure we're connected
+    
       const state = await player.value?.getCurrentState()
       if (!state) {
         console.log('No current state, attempting to reconnect player...')
@@ -269,8 +267,7 @@ export const useSpotifyPlayer = () => {
       playerError.value = 'Error playing track'
     }
   }
-  
-  // Play an album
+
   const playAlbum = async (albumUri: string) => {
     if (!isPlayerReady.value || !deviceId.value) {
       playerError.value = 'Player not ready'
@@ -278,7 +275,7 @@ export const useSpotifyPlayer = () => {
     }
     
     try {
-      // Ensure this device is active
+
       await setActiveDevice()
       
       await spotifyApi.play({
@@ -291,7 +288,7 @@ export const useSpotifyPlayer = () => {
     }
   }
   
-  // Play a playlist
+
   const playPlaylist = async (playlistUri: string) => {
     if (!isPlayerReady.value || !deviceId.value) {
       playerError.value = 'Player not ready'
@@ -311,8 +308,7 @@ export const useSpotifyPlayer = () => {
       playerError.value = 'Error playing playlist'
     }
   }
-  
-  // Toggle play/pause
+
   const togglePlay = async () => {
     if (!player.value) return
     
@@ -323,8 +319,7 @@ export const useSpotifyPlayer = () => {
       playerError.value = 'Error toggling play state'
     }
   }
-  
-  // Seek to position
+
   const seek = async (positionMs: number) => {
     if (!player.value) return
     
@@ -336,7 +331,7 @@ export const useSpotifyPlayer = () => {
     }
   }
   
-  // Set volume
+
   const setVolume = async (volumePercentage: number) => {
     if (!player.value || !isPlayerReady.value) return
     
@@ -348,7 +343,6 @@ export const useSpotifyPlayer = () => {
     }
   }
   
-  // Play the current track
   const play = async () => {
     if (!player.value || !isPlayerReady.value || !deviceId.value) {
       playerError.value = 'Player not ready'
@@ -356,7 +350,7 @@ export const useSpotifyPlayer = () => {
     }
     
     try {
-      // Ensure this device is active
+  
       await setActiveDevice()
       
       const state = await player.value.getCurrentState()
@@ -369,8 +363,7 @@ export const useSpotifyPlayer = () => {
       playerError.value = 'Error playing track'
     }
   }
-  
-  // Pause the current track
+
   const pause = async () => {
     if (!player.value || !isPlayerReady.value || !deviceId.value) {
       playerError.value = 'Player not ready'
@@ -378,7 +371,7 @@ export const useSpotifyPlayer = () => {
     }
     
     try {
-      // Ensure this device is active
+
       await setActiveDevice()
       
       const state = await player.value.getCurrentState()
@@ -392,24 +385,24 @@ export const useSpotifyPlayer = () => {
     }
   }
   
-  // Volume control
+ 
   const volume = ref(0.5)
   
-  // Initialize the player when the component is mounted
+
   onMounted(async () => {
     if (process.client) {
       try {
-        // Wait for Spotify API to be initialized and connected
+       
         if (!isConnected.value) {
           console.log('Waiting for Spotify connection before initializing player...')
-          // Check every 1 second up to 10 times if we're connected
+          
           for (let i = 0; i < 10; i++) {
             await new Promise(resolve => setTimeout(resolve, 1000))
             if (isConnected.value) break
           }
         }
         
-        // Only proceed if we're connected
+       
         if (!isConnected.value) {
           console.warn('Not connected to Spotify, not initializing player')
           return
@@ -417,13 +410,12 @@ export const useSpotifyPlayer = () => {
         
         await loadSpotifyScript()
         
-        // Wait for the Spotify SDK to load
         window.onSpotifyWebPlaybackSDKReady = () => {
           console.log('Spotify Web Playback SDK is ready')
           initializePlayer()
         }
         
-        // If the callback didn't fire, but the SDK is already loaded, initialize anyway
+       
         if (window.Spotify) {
           initializePlayer()
         }
@@ -435,14 +427,14 @@ export const useSpotifyPlayer = () => {
     }
   })
   
-  // Disconnect player when the component is unmounted
+
   onUnmounted(() => {
     if (player.value) {
       disconnect()
     }
   })
   
-  // Previous track
+  
   const previousTrack = async () => {
     if (!player.value || !isPlayerReady.value || !deviceId.value) {
       playerError.value = 'Player not ready'
@@ -451,7 +443,7 @@ export const useSpotifyPlayer = () => {
     }
 
     try {
-      // Ensure this device is active
+      
       await setActiveDevice()
       const state = await player.value.getCurrentState()
       console.log('[SpotifyPlayer] Previous: Current state', state)
@@ -468,7 +460,7 @@ export const useSpotifyPlayer = () => {
     }
   }
   
-  // Next track
+
   const nextTrack = async () => {
     if (!player.value || !isPlayerReady.value || !deviceId.value) {
       playerError.value = 'Player not ready'
@@ -477,14 +469,14 @@ export const useSpotifyPlayer = () => {
     }
 
     try {
-      // Ensure this device is active
+      
       const success = await setActiveDevice()
       if (!success) {
         playerError.value = 'Failed to set device as active'
         console.warn('[SpotifyPlayer] Next: Failed to set device as active')
         return
       }
-      // Wait a moment for device activation to settle
+      
       await new Promise(resolve => setTimeout(resolve, 500))
       const state = await player.value.getCurrentState()
       console.log('[SpotifyPlayer] Next: Current state', state)
@@ -495,7 +487,7 @@ export const useSpotifyPlayer = () => {
       }
       await player.value.nextTrack()
       console.log('[SpotifyPlayer] Next: Command sent')
-      // Wait for the track to change and update state
+      
       await new Promise(resolve => setTimeout(resolve, 500))
       const newState = await player.value.getCurrentState()
       if (newState) {

@@ -123,31 +123,6 @@
         </div>
       </div>
 
-
-      <div class="top-artists p-4">
-        <h3 class="mb-4">Your Top Artists</h3>
-        <div class="row g-4">
-          <div v-for="artist in topArtists" :key="artist.id" class="col-6 col-md-4 col-lg-3">
-            <NuxtLink :to="`/artist/${artist.id}`" class="text-decoration-none">
-              <div class="card bg-dark text-white h-100">
-                <img 
-                  :src="artist.images[0]?.url" 
-                  :alt="artist.name"
-                  class="card-img-top"
-                  style="aspect-ratio: 1; object-fit: cover;"
-                >
-                <div class="card-body">
-                  <h5 class="card-title text-truncate">{{ artist.name }}</h5>
-                  
-                </div>
-              </div>
-            </NuxtLink>
-          </div>
-        </div>
-      </div>
-
-
-      
     </div>
   </div>
 </template>
@@ -159,14 +134,6 @@ import { useSpotifyPlayer } from '~/composables/useSpotifyPlayer'
 import { useAuth } from '~/composables/useAuth'
 
 // Types for Spotify data
-interface SpotifyArtist {
-  id: string;
-  name: string;
-  images: Array<{ url: string }>;
-  uri: string;
-  genres?: string[];
-}
-
 interface SpotifyTrack {
   id: string
   name: string
@@ -206,7 +173,6 @@ definePageMeta({
 })
 
 const { 
-  getMyTopArtists, 
   getMyRecentlyPlayed, 
   login, 
   hasToken, 
@@ -218,11 +184,9 @@ const {
   play 
 } = useSpotify()
 
-
 const { playTrack: playerPlayTrack, isPlayerReady } = useSpotifyPlayer()
 const { user, isAuthenticated } = useAuth()
 const isLoading = ref(true)
-const topArtists = ref<SpotifyArtist[]>([])
 const recentlyPlayed = ref<RecentlyPlayedItem[]>([])
 const isSpotifyConnected = computed(() => isInitialized.value && isConnected.value)
 const userProfile = ref<any>(null)
@@ -233,25 +197,19 @@ const isLoadingPlaylist = ref(false)
 const networkError = ref(false)
 const isConnecting = ref(false)
 
+// Load data on mount
 onMounted(async () => {
-  console.log('My Music Page - Auth State:', { 
-    user: user.value, 
-    isAuthenticated: isAuthenticated.value,
-    spotifyState: {
-      isInitialized: isInitialized.value,
-      hasToken: hasToken.value,
-      isConnected: isConnected.value
-    }
-  })
-  
   try {
-    // Wait for Spotify to initialize
     await waitFor(() => isInitialized.value)
     isLoading.value = false
     
-    // Only try to load data if we have a token
     if (isConnected.value) {
-      loadMusicData()
+      const [recentData, playlistsData] = await Promise.all([
+        getMyRecentlyPlayed(),
+        getUserPlaylists()
+      ])
+      recentlyPlayed.value = recentData
+      userPlaylists.value = playlistsData
     }
   } catch (error) {
     console.error('Error in initialization:', error)
@@ -298,13 +256,11 @@ const loadMusicData = async () => {
     userPlaylists.value = await getUserPlaylists()
 
     // Load top artists and recently played
-    const [artists, recent] = await Promise.all([
-      getMyTopArtists(),
+    const [recentData] = await Promise.all([
       getMyRecentlyPlayed()
     ])
 
-    topArtists.value = artists as SpotifyArtist[]
-    recentlyPlayed.value = recent as RecentlyPlayedItem[]
+    recentlyPlayed.value = recentData as RecentlyPlayedItem[]
   } catch (error) {
     console.error('Error loading music data:', error)
     if (error instanceof Error && error.message.includes('network')) {

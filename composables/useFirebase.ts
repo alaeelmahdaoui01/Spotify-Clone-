@@ -14,7 +14,7 @@ export const useFirebase = () => {
     appId: config.public.firebaseConfig.appId
   }
 
-  // Add measurement ID if available
+
   if (process.env.FIREBASE_MEASUREMENT_ID) {
     (firebaseConfig as any).measurementId = process.env.FIREBASE_MEASUREMENT_ID
   }
@@ -24,7 +24,6 @@ export const useFirebase = () => {
   const db = getFirestore(app)
   let analytics: Analytics | null = null
 
-  // Initialize analytics only in client-side environment
   if (process.client && firebaseConfig.measurementId) {
     analytics = getAnalytics(app)
   }

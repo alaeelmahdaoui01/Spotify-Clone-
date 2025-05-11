@@ -1,7 +1,6 @@
 import SpotifyWebApi from 'spotify-web-api-node'
 import { ref, onMounted } from 'vue'
 
-// Create persistent token storage
 const persistToken = (token: any) => {
   if (process.client) {
     localStorage.setItem('spotify_access_token', token.access_token)
@@ -10,7 +9,7 @@ const persistToken = (token: any) => {
   }
 }
 
-// Load tokens from storage
+
 const loadTokens = () => {
   if (process.client) {
     return {
@@ -28,15 +27,15 @@ export const useSpotify = () => {
   const hasToken = ref(false)
   const isConnected = ref(false)
   
-  // Create API instance
+
   const spotifyApi = new SpotifyWebApi({
     clientId: config.public.spotifyClientId,
     redirectUri: config.public.spotifyRedirectUri
   })
   
-  // For client-side only code
+  
   if (process.client) {
-    // Set client secret only in secure contexts
+
     try {
       if (config.spotifyClientSecret) {
         spotifyApi.setClientSecret(config.spotifyClientSecret)
@@ -45,7 +44,6 @@ export const useSpotify = () => {
       console.warn('Could not set client secret. Some features might not work.')
     }
     
-    // Try to load tokens from local storage
     onMounted(() => {
       const { accessToken, refreshToken, expiresAt } = loadTokens()
       
@@ -54,7 +52,7 @@ export const useSpotify = () => {
         spotifyApi.setRefreshToken(refreshToken)
         hasToken.value = true
         
-        // Check if token is expired
+    
         if (expiresAt && parseInt(expiresAt) < Date.now()) {
           // Token expired, need to refresh
           refreshAccessToken()
@@ -67,7 +65,6 @@ export const useSpotify = () => {
     })
   }
 
-  // Refresh access token using refresh token
   const refreshAccessToken = async () => {
     if (!process.client) return null
     
@@ -79,7 +76,7 @@ export const useSpotify = () => {
         return null
       }
 
-      // Call our server endpoint to refresh the token
+
       const response = await fetch('/api/spotify/refresh', {
         method: 'POST',
         headers: {
@@ -102,19 +99,19 @@ export const useSpotify = () => {
         throw new Error('Invalid token response from server')
       }
 
-      // Update tokens
+
       const newAccessToken = data.access_token
       const newRefreshToken = data.refresh_token || refreshToken
       const expiresIn = data.expires_in
 
-      // Store tokens
+
       localStorage.setItem('spotify_access_token', newAccessToken)
       if (data.refresh_token) {
         localStorage.setItem('spotify_refresh_token', newRefreshToken)
       }
       localStorage.setItem('spotify_token_expires', (Date.now() + expiresIn * 1000).toString())
 
-      // Update API instance
+
       spotifyApi.setAccessToken(newAccessToken)
       isConnected.value = true
       return newAccessToken
@@ -125,11 +122,10 @@ export const useSpotify = () => {
     }
   }
 
-  // Login with Spotify - redirects to Spotify authorization page
+
   const login = () => {
     if (!process.client) return
-    
-    // Clear existing tokens to force re-authentication
+
     localStorage.removeItem('spotify_access_token')
     localStorage.removeItem('spotify_refresh_token')
     localStorage.removeItem('spotify_token_expires')
@@ -168,7 +164,7 @@ export const useSpotify = () => {
     try {
       console.log('Processing Spotify callback with code')
       
-      // Exchange the code for tokens using our server endpoint
+
       const response = await fetch('/api/spotify/callback', {
         method: 'POST',
         headers: {
@@ -192,11 +188,10 @@ export const useSpotify = () => {
       
       console.log('Successfully received tokens')
       
-      // Set the access token and refresh token
+      
       spotifyApi.setAccessToken(tokenData.access_token)
       spotifyApi.setRefreshToken(tokenData.refresh_token)
       
-      // Store tokens
       persistToken(tokenData)
       hasToken.value = true
       isConnected.value = true
@@ -210,23 +205,23 @@ export const useSpotify = () => {
     }
   }
 
-  // Wrap API calls with token refresh logic
+
   const callWithTokenRefresh = async (apiCall: () => Promise<any>) => {
     try {
-      // Check if we have a token at all
+     
       if (!spotifyApi.getAccessToken()) {
         console.error('No Spotify access token available')
         isConnected.value = false
         return null
       }
       
-      // Try the call
+     
       const result = await apiCall()
-      // If we get here, the call was successful, so we're definitely connected
+     
       isConnected.value = true
       return result
     } catch (error: any) {
-      // If token expired, refresh and try again
+      
       if (error.statusCode === 401) {
         console.log('Token expired, refreshing...')
         const refreshed = await refreshAccessToken()
@@ -239,8 +234,7 @@ export const useSpotify = () => {
           throw new Error('Failed to refresh token')
         }
       }
-      // For other errors, we might still be connected
-      // Only set to false if it's an authentication error
+
       if (error.statusCode === 403 || error.statusCode === 401) {
         isConnected.value = false
       }
@@ -290,7 +284,7 @@ export const useSpotify = () => {
       const response = await spotifyApi.getMyRecentlyPlayedTracks();
       const items = response.body.items;
 
-      // Use a Set to remove duplicates based on track ID
+    
       const seen = new Set();
       const uniqueItems = items.filter(item => {
         const trackId = item.track?.id;
@@ -344,7 +338,6 @@ export const useSpotify = () => {
     })
   }
 
-  // Log out from Spotify
   const logout = () => {
     if (process.client) {
       localStorage.removeItem('spotify_access_token')
@@ -359,7 +352,7 @@ export const useSpotify = () => {
     }
   }
 
-  // Helper function to generate random string for state
+  
   const generateRandomString = (length: number) => {
     if (!process.client) return 'server-side'
     
@@ -368,7 +361,6 @@ export const useSpotify = () => {
     return values.reduce((acc, x) => acc + possible[x % possible.length], '')
   }
 
-  // Play a track or context
   const play = async (options: any) => {
     return callWithTokenRefresh(async () => {
       try {
@@ -381,7 +373,6 @@ export const useSpotify = () => {
     })
   }
 
-  // Add these functions before the return statement
   const getUserProfile = async () => {
     return callWithTokenRefresh(async () => {
       try {
@@ -453,15 +444,14 @@ export const useSpotify = () => {
     })
   }
 
-  // Create a new playlist
+  
   const createPlaylist = async (name: string, description?: string) => {
     return callWithTokenRefresh(async () => {
       try {
-        // Get current user's ID
+      
         const me = await spotifyApi.getMe()
         const userId = me.body.id
 
-        // Create the playlist
         const response = await spotifyApi.createPlaylist(name, {
           description: description || undefined,
           public: false
@@ -475,11 +465,10 @@ export const useSpotify = () => {
     })
   }
 
-  // Add tracks to a playlist
   const addTracksToPlaylist = async (playlistId: string, trackUris: string[]) => {
     return callWithTokenRefresh(async () => {
       try {
-        // Spotify API has a limit of 100 tracks per request
+        
         const chunkSize = 100
         for (let i = 0; i < trackUris.length; i += chunkSize) {
           const chunk = trackUris.slice(i, i + chunkSize)
@@ -493,7 +482,7 @@ export const useSpotify = () => {
     })
   }
 
-  // Get artist's top tracks
+ 
   const getArtistTopTracks = async (artistId: string) => {
     return callWithTokenRefresh(async () => {
       try {
@@ -506,7 +495,7 @@ export const useSpotify = () => {
     })
   }
 
-  // Get artist details
+  
   const getArtist = async (artistId: string) => {
     return callWithTokenRefresh(async () => {
       try {
@@ -519,7 +508,7 @@ export const useSpotify = () => {
     })
   }
 
-  // Transfer playback to a specific device
+
   const transferMyPlayback = async (deviceIds: string[], options: { play?: boolean } = {}) => {
     return callWithTokenRefresh(async () => {
       try {
