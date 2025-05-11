@@ -18,13 +18,9 @@
         </div>
       </div>
       <div class="mt-3">
-        <button @click="connectSpotify" class="btn btn-success me-2" :disabled="isConnecting">
+        <button @click="connectSpotify" class="btn btn-success rounded-pill px-4 py-2" :disabled="isConnecting">
           <i class="bi bi-spotify me-2"></i>
           {{ isConnecting ? 'Connecting...' : 'Connect to Spotify' }}
-        </button>
-        <button @click="logout" class="btn btn-outline-light">
-          <i class="bi bi-box-arrow-right me-2"></i>
-          Logout
         </button>
       </div>
     </div>
@@ -463,5 +459,31 @@ const connectSpotify = () => {
   font-size: 24px; /* Adjust the size of the play icon */
 }
 
+.alert-info {
+  background-color: rgba(29, 185, 84, 0.1);
+  border: 1px solid rgba(29, 185, 84, 0.2);
+  color: #fff;
+}
+
+.btn-success {
+  background-color: #1DB954;
+  border: none;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-success:hover {
+  background-color: #1ed760;
+  transform: scale(1.02);
+}
+
+.btn-success:disabled {
+  background-color: #1DB954;
+  opacity: 0.7;
+}
+
+.bi-spotify {
+  color: #1DB954;
+}
 
 </style> 

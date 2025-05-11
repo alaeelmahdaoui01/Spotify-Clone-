@@ -5,36 +5,46 @@
     <nav class="sidebar bg-black">
       <div class="topthing p-3">
         <div class="logo-link">
-        <svg viewBox="0 0 24 24" class="spotify-logo">
+          <svg viewBox="0 0 24 24" class="spotify-logo">
             <path fill="currentColor" d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
           </svg>
-          <span class="spotify-logo mb-0"> Spotify</span> </div>
-        <!-- <h3 class="spotify-logo mb-0">Spotify</h3> -->
-        <div class="dropdown me-3">
-          <button class="btn btn-outline-light border-0 p-0 dropdown-toggle d-flex align-items-center" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-            <img 
-              v-if="user?.photoURL" 
-              :src="user.photoURL" 
-              :alt="user?.displayName || 'User'" 
-              class="rounded-circle shadow-sm" 
-              width="40" 
-              height="40"
-            >
-            <div v-else class="bg-secondary text-white rounded-circle d-flex justify-content-center align-items-center" style="width: 40px; height: 40px;">
-              <i class="bi bi-person fs-5"></i>
+          <span class="spotify-logo mb-0"> Spotify</span>
+        </div>
+        <div class="dropdown">
+          <button class="btn btn-outline-light border-0 p-0 dropdown-toggle d-flex align-items-center gap-2" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+            <div class="profile-pic-container">
+              <img 
+                v-if="user?.photoURL" 
+                :src="user.photoURL" 
+                :alt="user?.displayName || 'User'" 
+                class="profile-pic"
+              >
+              <div v-else class="profile-pic-placeholder">
+                <i class="bi bi-person-fill"></i>
+              </div>
             </div>
+            <span class="profile-name d-none d-md-inline">{{ user?.displayName || user?.email?.split('@')[0] }}</span>
           </button>
 
-          <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end mt-2 shadow" aria-labelledby="dropdownMenuButton">
-            <li class="dropdown-item-text text-white fw-semibold small">
-              {{ user?.displayName || user?.email?.split('@')[0] }}
+          <ul class="dropdown-menu dropdown-menu-dark mt-2" aria-labelledby="dropdownMenuButton">
+            <li class="dropdown-header">
+              <div class="user-info">
+                <div class="user-name">{{ user?.displayName || user?.email?.split('@')[0] }}</div>
+                <div class="user-email text-muted small">{{ user?.email }}</div>
+              </div>
             </li>
             <li><hr class="dropdown-divider"></li>
             <li>
               <NuxtLink to="/profile" class="dropdown-item">
-                <i class="bi bi-pencil me-2"></i>Edit profile
+                <i class="bi bi-person me-2"></i>Profile
               </NuxtLink>
             </li>
+            <li>
+              <NuxtLink to="/account" class="dropdown-item">
+                <i class="bi bi-gear me-2"></i>Account
+              </NuxtLink>
+            </li>
+            <li><hr class="dropdown-divider"></li>
             <li>
               <NuxtLink to="/logout" class="dropdown-item text-danger">
                 <i class="bi bi-box-arrow-right me-2"></i>Log out
@@ -58,27 +68,7 @@
               <i class="bi bi-search me-3"></i> Search
             </NuxtLink>
           </li>
-          <li class="nav-item" v-if="isAuthenticated">
-            
-          </li>
-          <li class="nav-item">
-            <!-- <NuxtLink to="/player" class="nav-link text-white d-flex align-items-center">
-              <i class="bi bi-speaker-fill me-3"></i>
-              <span>Player</span>
-            </NuxtLink> -->
-          </li>
         </ul>
-      </div>
-
-      <!-- Spotify Connection Status -->
-      <div v-if="isAuthenticated && !isConnected" class="spotify-status-panel p-3 mb-3 rounded-3 bg-dark-subtle">
-        <div class="d-flex align-items-center justify-content-between mb-2">
-          <h6 class="mb-0">Connect to Spotify</h6>
-        </div>
-        <p class="text-muted small mb-2">Connect to see your playlists and listen to music</p>
-        <button @click="connectSpotify" class="btn btn-success btn-sm rounded-pill w-100">
-          <i class="bi bi-spotify me-2"></i> Connect
-        </button>
       </div>
 
       <div class="library-section">
@@ -219,42 +209,43 @@
           </div>
 
           <!-- Player Controls -->
-          <div class="player-controls d-flex align-items-center gap-3">
-            <button 
-              @click="previousTrack" 
-              class="btn btn-link text-white p-0"
-              :disabled="!isSpotifyConnected"
-            >
-              <i class="bi bi-skip-start-fill fs-4"></i>
-            </button>
-            
-            <button 
-              @click="togglePlay" 
-              class="btn btn-link text-white p-0"
-              :disabled="!isSpotifyConnected"
-            >
-              <i :class="isPlaying ? 'bi bi-pause-fill' : 'bi bi-play-fill'" class="fs-4"></i>
-            </button>
-            
-            <button 
-              @click="nextTrack" 
-              class="btn btn-link text-white p-0"
-              :disabled="!isSpotifyConnected"
-            >
-              <i class="bi bi-skip-end-fill fs-4"></i>
-            </button>
-            
-            <div class="volume-control d-flex align-items-center gap-2">
-              <i class="bi bi-volume-down text-white"></i>
-              <input 
-                type="range" 
-                class="form-range" 
-                min="0" 
-                max="100" 
-                v-model="volume"
-                @input="updateVolume"
+          <div class="player-controls d-flex flex-column align-items-center gap-2" style="width: 40%">
+            <div class="d-flex align-items-center gap-3">
+              <button 
+                @click="previousTrack" 
+                class="btn btn-link text-white p-0"
+                :disabled="!isSpotifyConnected"
               >
-              <i class="bi bi-volume-up text-white"></i>
+                <i class="bi bi-skip-start-fill fs-4"></i>
+              </button>
+              
+              <button 
+                @click="togglePlay" 
+                class="btn btn-link text-white p-0"
+                :disabled="!isSpotifyConnected"
+              >
+                <i :class="isPlaying ? 'bi bi-pause-fill' : 'bi bi-play-fill'" class="fs-4"></i>
+              </button>
+              
+              <button 
+                @click="nextTrack" 
+                class="btn btn-link text-white p-0"
+                :disabled="!isSpotifyConnected"
+              >
+                <i class="bi bi-skip-end-fill fs-4"></i>
+              </button>
+            </div>
+
+            <div class="progress-container d-flex align-items-center gap-2 w-100 px-2">
+              <span class="time current-time">{{ formatTime(currentTime) }}</span>
+              <div class="progress flex-grow-1" style="height: 4px;" @click="seekTo">
+                <div 
+                  class="progress-bar bg-white" 
+                  role="progressbar" 
+                  :style="{ width: `${progressPercentage}%` }"
+                ></div>
+              </div>
+              <span class="time total-time">{{ formatTime(duration) }}</span>
             </div>
           </div>
 
@@ -287,7 +278,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuth } from '~/composables/useAuth'
 import { useSpotify } from '~/composables/useSpotify'
@@ -324,7 +315,9 @@ const {
   togglePlay, 
   nextTrack,
   previousTrack,
-  setVolume
+  setVolume,
+  seek,
+  getCurrentState
 } = useSpotifyPlayer()
 
 const isSpotifyConnected = computed(() => isInitialized.value && isConnected.value)
@@ -333,6 +326,11 @@ const isLoading = ref(true)
 const footer = ref(true)
 const userPlaylists = ref<SpotifyPlaylist[]>([])
 const volume = ref(50)
+
+const currentTime = ref(0)
+const duration = ref(0)
+const progressPercentage = ref(0)
+const isDragging = ref(false)
 
 // Load playlists
 const loadPlaylists = async () => {
@@ -412,8 +410,58 @@ const updateVolume = () => {
   setVolume(volume.value)
 }
 
+// Format time in MM:SS
+const formatTime = (ms: number) => {
+  if (!ms) return '0:00'
+  const minutes = Math.floor(ms / 60000)
+  const seconds = Math.floor((ms % 60000) / 1000)
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`
+}
 
+// Handle seeking
+const seekTo = (event: MouseEvent) => {
+  if (!isSpotifyConnected.value) return
+  
+  const progressBar = event.currentTarget as HTMLElement
+  const rect = progressBar.getBoundingClientRect()
+  const percent = (event.clientX - rect.left) / rect.width
+  const seekTime = Math.floor(percent * duration.value)
+  
+  seek(seekTime)
+  currentTime.value = seekTime
+  progressPercentage.value = (seekTime / duration.value) * 100
+}
 
+// Update progress
+const updateProgress = async () => {
+  if (!isSpotifyConnected.value || !isPlaying.value) return
+  
+  try {
+    const state = await getCurrentState()
+    if (state) {
+      currentTime.value = state.position
+      duration.value = state.duration
+      progressPercentage.value = (state.position / state.duration) * 100
+    }
+  } catch (error) {
+    console.error('Error updating progress:', error)
+  }
+}
+
+// Start progress updates when playing
+watch(isPlaying, (newValue) => {
+  if (newValue) {
+    const interval = setInterval(updateProgress, 1000)
+    onUnmounted(() => clearInterval(interval))
+  }
+})
+
+// Update initial state
+onMounted(async () => {
+  if (isSpotifyConnected.value) {
+    await updateProgress()
+  }
+})
 
 // Search query
 const searchQuery = ref('')
@@ -445,10 +493,63 @@ const filteredPlaylists = computed(() =>
   
 }
 
-.topthing{
-  display:flex;
+.topthing {
+  display: flex;
   flex-direction: row;
-  justify-content:space-between
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px !important;
+  border-bottom: 1px solid #282828;
+}
+
+.logo-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 24px;
+  font-weight: 700;
+  color: white;
+  text-decoration: none;
+  height: 40px;
+}
+
+.spotify-logo {
+  width: 32px;
+  height: 32px;
+  color: #1DB954;
+}
+
+.btn-outline-light {
+  border: none;
+  padding: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 23px;
+  background-color: rgba(0, 0, 0, 0.7);
+  height: 32px;
+}
+
+.profile-pic-container {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #282828;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.profile-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1;
 }
 
 .main-content {
@@ -551,13 +652,6 @@ const filteredPlaylists = computed(() =>
 
 ::-webkit-scrollbar-thumb:hover {
   background: #888;
-}
-
-.spotify-logo {
-  color: white;
-  font-size: 1.5rem;
-  font-weight: bold;
-  letter-spacing: -1px;
 }
 
 .search-container {
@@ -690,30 +784,12 @@ h1 {
   color: #0b8636; /* Lighter green on hover */
 }
 
- 
-  
-  .spotify-logo {
-    width: 40px;
-    height: 40px;
-    color: #1DB954;
-  }
-
-  .logo-link {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 24px;
-    font-weight: 700;
-    color: white;
-    text-decoration: none;
-  }
-
-  .buttons{
-    display:flex;
-    flex-direction: row;
-    gap : 4px; 
-    align-items: center 
-  }
+.buttons{
+  display:flex;
+  flex-direction: row;
+  gap : 4px; 
+  align-items: center 
+}
 
 .library{
   margin-left: 20px
@@ -753,6 +829,184 @@ h1 {
   padding: 0.375rem 0.5rem;
 }
 
+/* Remove the spotify-status-panel styles */
+.spotify-status-panel {
+  display: none;
+}
+
+.dropdown-menu {
+  background-color: #282828;
+  border: 1px solid #404040;
+  border-radius: 4px;
+  padding: 4px;
+  min-width: 240px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  margin-top: 8px !important;
+}
+
+.dropdown-menu::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  right: 16px;
+  width: 12px;
+  height: 12px;
+  background-color: #282828;
+  border-left: 1px solid #404040;
+  border-top: 1px solid #404040;
+  transform: rotate(45deg);
+}
+
+.dropdown-header {
+  padding: 12px 16px 8px;
+  border-bottom: 1px solid #404040;
+}
+
+.user-info {
+  padding: 4px 0;
+}
+
+.user-name {
+  color: white;
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 4px;
+  letter-spacing: 0.3px;
+}
+
+.user-email {
+  font-size: 12px;
+  color: #b3b3b3;
+  letter-spacing: 0.2px;
+}
+
+.dropdown-item {
+  color: #b3b3b3;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  border-radius: 2px;
+  margin: 2px 4px;
+  width: calc(100% - 8px);
+}
+
+.dropdown-item:hover {
+  color: white;
+  background-color: #404040;
+}
+
+.dropdown-item i {
+  font-size: 16px;
+  width: 20px;
+  opacity: 0.9;
+}
+
+.dropdown-item.text-danger {
+  color: #ff4e45 !important;
+  margin-top: 4px;
+}
+
+.dropdown-item.text-danger:hover {
+  background-color: rgba(255, 78, 69, 0.1);
+  color: #ff4e45 !important;
+}
+
+.dropdown-divider {
+  border-color: #404040;
+  margin: 4px 0;
+  opacity: 0.5;
+}
+
+.dropdown-caret {
+  font-size: 12px;
+  color: #b3b3b3;
+  transition: all 0.2s ease;
+  margin-left: 4px;
+}
+
+.btn-outline-light.show .dropdown-caret {
+  transform: rotate(180deg);
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .topthing {
+    padding: 12px 16px !important;
+  }
+  
+  .logo-link {
+    font-size: 20px;
+    height: 32px;
+  }
+  
+  .spotify-logo {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .btn-outline-light {
+    height: 28px;
+  }
+  
+  .profile-pic-container {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.progress-container {
+  position: relative;
+  cursor: pointer;
+}
+
+.progress {
+  background-color: #4d4d4d;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: height 0.1s ease;
+}
+
+.progress:hover {
+  height: 6px !important;
+}
+
+.progress-bar {
+  background-color: #b3b3b3;
+  transition: width 0.1s linear;
+}
+
+.progress:hover .progress-bar {
+  background-color: #1DB954;
+}
+
+.time {
+  font-size: 11px;
+  color: #b3b3b3;
+  min-width: 40px;
+  text-align: center;
+}
+
+.player-controls {
+  position: relative;
+}
+
+.player-controls .btn-link {
+  opacity: 0.7;
+  transition: all 0.2s ease;
+}
+
+.player-controls .btn-link:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.player-controls .btn-link:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
 </style> 
 
 
