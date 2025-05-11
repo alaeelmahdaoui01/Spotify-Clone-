@@ -35,3 +35,8 @@ Copy your Client ID and Client Secret, and paste them into your .env file
 ### 5. Running the Project
 
 Once everything is set up: npm run dev
+
+
+### Quick remark 
+
+If you want to use another account in the OAuth2.0 spotify authentification other than the one you used for the creation of the project, You should add the user's email in User Management in your Spotify Developer's dashboard
