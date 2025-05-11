@@ -232,40 +232,149 @@ onMounted(() => {
 .playlist-page {
   min-height: 100vh;
   background: #121212;
+  padding-bottom: 90px; /* Account for now playing bar */
 }
 
 .playlist-header {
   background: linear-gradient(to bottom, rgba(0,0,0,0.7), #121212);
   padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.playlist-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: inherit;
+  backdrop-filter: blur(20px);
+  z-index: 0;
+}
+
+.playlist-header > div {
+  position: relative;
+  z-index: 1;
 }
 
 .playlist-info {
   color: white;
 }
 
+.playlist-info h1 {
+  font-size: 3rem;
+  font-weight: 900;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.playlist-info .text-muted {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.btn-success {
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(29, 185, 84, 0.3);
+}
+
+.btn-success:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(29, 185, 84, 0.4);
+}
+
+.btn-success:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 .tracks-list {
   background: rgba(0, 0, 0, 0.3);
+  padding: 1rem 2rem;
 }
 
 .list-group-item {
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
+  border: none;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  padding: 0.75rem 1rem;
+  background: transparent !important;
 }
 
 .list-group-item:hover {
   background-color: rgba(255, 255, 255, 0.1) !important;
+  transform: translateX(4px);
 }
 
 .track-number {
-  width: 30px;
+  width: 40px;
   text-align: center;
   color: #b3b3b3;
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 
 .track-name {
   font-weight: 500;
+  font-size: 0.95rem;
+  color: #ffffff;
+  margin-bottom: 4px;
 }
 
 .artist-name {
   color: #b3b3b3;
+  font-size: 0.85rem;
+}
+
+.btn-link {
+  opacity: 0;
+  transition: all 0.2s ease;
+  padding: 8px;
+  border-radius: 50%;
+}
+
+.list-group-item:hover .btn-link {
+  opacity: 1;
+}
+
+.btn-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: scale(1.1);
+}
+
+.btn-link:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .playlist-header {
+    padding: 1.5rem;
+  }
+
+  .playlist-info h1 {
+    font-size: 2rem;
+  }
+
+  .tracks-list {
+    padding: 1rem;
+  }
+
+  .list-group-item {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .track-number {
+    width: 30px;
+  }
 }
 </style> 

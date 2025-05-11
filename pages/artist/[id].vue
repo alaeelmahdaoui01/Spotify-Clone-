@@ -185,37 +185,174 @@ onMounted(loadArtistData)
 <style scoped>
 .artist-header {
   padding: 2rem 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.artist-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.7), #121212);
+  z-index: 0;
+}
+
+.artist-header > div {
+  position: relative;
+  z-index: 1;
 }
 
 .artist-image {
-  width: 200px;
-  height: 200px;
+  width: 232px;
+  height: 232px;
   object-fit: cover;
   box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  transition: transform 0.3s ease;
+}
+
+.artist-image:hover {
+  transform: scale(1.02);
+}
+
+.display-4 {
+  font-size: 3rem;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  margin-bottom: 0.5rem;
+}
+
+.text-muted {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.btn-success {
+  padding: 0.75rem 2rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(29, 185, 84, 0.3);
+}
+
+.btn-success:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(29, 185, 84, 0.4);
+}
+
+.btn-success:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.tracks-list {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 2rem;
 }
 
 .track-item {
-  transition: background-color 0.2s;
-  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  padding: 0.75rem 1rem;
 }
 
 .track-item:hover {
   background-color: rgba(255, 255, 255, 0.1);
+  transform: translateX(4px);
 }
 
 .track-item.active {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(29, 185, 84, 0.1);
+}
+
+.track-number {
+  color: #b3b3b3;
+  font-size: 0.9rem;
+  font-weight: 500;
+  min-width: 40px;
+  text-align: center;
 }
 
 .track-image {
   border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.track-item:hover .track-image {
+  transform: scale(1.05);
 }
 
 .track-name {
   font-weight: 500;
+  font-size: 0.95rem;
+  color: #ffffff;
+  margin-bottom: 4px;
 }
 
 .track-artists {
-  font-size: 0.875rem;
+  font-size: 0.85rem;
+  color: #b3b3b3;
+}
+
+.track-duration {
+  font-size: 0.85rem;
+  min-width: 60px;
+  text-align: right;
+}
+
+.btn-link {
+  opacity: 0;
+  transition: all 0.2s ease;
+  padding: 8px;
+  border-radius: 50%;
+}
+
+.track-item:hover .btn-link {
+  opacity: 1;
+}
+
+.btn-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: scale(1.1);
+}
+
+.btn-link:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .artist-header {
+    padding: 1.5rem 0;
+  }
+
+  .artist-image {
+    width: 180px;
+    height: 180px;
+  }
+
+  .display-4 {
+    font-size: 2rem;
+  }
+
+  .tracks-list {
+    padding: 0.75rem;
+    margin-top: 1.5rem;
+  }
+
+  .track-item {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .track-number {
+    min-width: 30px;
+  }
 }
 </style> 

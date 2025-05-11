@@ -1,256 +1,377 @@
 <template>
-  <div class="profile-page">
-    <div class="container py-5">
-      <div class="row">
-        <div class="col-lg-4">
-          <div class="card bg-dark text-white mb-4">
-            <div class="card-body text-center">
-              <img 
-                :src="user?.photoURL || 'https://via.placeholder.com/150?text=User'" 
-                class="rounded-circle img-fluid" 
-                style="width: 150px;" 
-                alt="User Profile"
-              >
-              <h5 class="my-3">{{ user?.displayName || 'User' }}</h5>
-              <p class="text-muted mb-1">{{ user?.email }}</p>
-              <button class="btn btn-success" @click="showPhotoUploadModal = true">
-                Change Photo
-              </button>
+  <div class="container-fluid profile-page">
+    <!-- Loading State -->
+    <div v-if="isLoading" class="text-center py-5">
+      <div class="spinner-border text-light" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="mt-3 text-light">Loading profile...</p>
+    </div>
+
+    <!-- Error State -->
+    <div v-else-if="error" class="alert alert-danger m-3">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        <div>
+          <strong>Error</strong>
+          <p class="mb-0">{{ error }}</p>
+        </div>
+      </div>
+      <button @click="loadProfile" class="btn btn-danger mt-3">
+        <i class="bi bi-arrow-clockwise me-2"></i>
+        Retry
+      </button>
+    </div>
+
+    <!-- Profile Content -->
+    <div v-else-if="profile" class="profile-content">
+      <!-- Profile Header -->
+      <div class="profile-header p-4" :style="headerStyle">
+        <div class="d-flex align-items-end">
+          <img 
+            :src="profile.images?.[0]?.url || '/img/placeholder-user.png'" 
+            class="rounded-circle shadow me-4" 
+            width="200" 
+            height="200" 
+            :alt="profile.display_name"
+          >
+          <div class="profile-info">
+            <h1 class="mb-2">{{ profile.display_name }}</h1>
+            <div class="d-flex align-items-center mb-4">
+              <span class="text-muted">{{ profile.followers?.total?.toLocaleString() }} followers</span>
+              <span class="text-muted mx-2">•</span>
+              <span class="text-muted">{{ profile.country }}</span>
             </div>
           </div>
         </div>
-        
-        <div class="col-lg-8">
-          <div class="card bg-dark text-white mb-4">
-            <div class="card-body">
-              <h6 class="mb-4">Profile Information</h6>
-              <form @submit.prevent="updateProfile">
-                <div class="mb-3">
-                  <label class="form-label" for="displayName">Display Name</label>
-                  <input 
-                    type="text" 
-                    id="displayName" 
-                    v-model="displayName" 
-                    class="form-control bg-dark-subtle text-white" 
-                    placeholder="Enter your display name"
-                  >
-                </div>
+      </div>
 
-                <div class="mb-3">
-                  <label class="form-label" for="email">Email</label>
-                  <input 
-                    type="email" 
-                    id="email" 
-                    v-model="email" 
-                    class="form-control bg-dark-subtle text-white" 
-                    disabled
-                  >
+      <!-- Profile Details -->
+      <div class="profile-details p-4">
+        <div class="row g-4">
+          <!-- Account Information -->
+          <div class="col-md-6">
+            <div class="card bg-dark text-white">
+              <div class="card-header">
+                <h5 class="mb-0">
+                  <i class="bi bi-person-circle me-2"></i>
+                  Account Information
+                </h5>
+              </div>
+              <div class="card-body">
+                <div class="info-item mb-3">
+                  <label class="text-muted">Email</label>
+                  <div class="text-white">{{ profile.email }}</div>
                 </div>
-
-                <div class="d-flex justify-content-end">
-                  <button 
-                    type="submit" 
-                    class="btn btn-success"
-                    :disabled="isLoading || !isChanged"
-                  >
-                    <span v-if="isLoading" class="spinner-border spinner-border-sm me-2"></span>
-                    Save Changes
-                  </button>
+                <div class="info-item mb-3">
+                  <label class="text-muted">Spotify ID</label>
+                  <div class="text-white">{{ profile.id }}</div>
                 </div>
-              </form>
+                <div class="info-item mb-3">
+                  <label class="text-muted">Account Type</label>
+                  <div class="text-white">
+                    <span class="badge" :class="profile.product === 'premium' ? 'bg-success' : 'bg-secondary'">
+                      {{ profile.product?.charAt(0).toUpperCase() + profile.product?.slice(1) }}
+                    </span>
+                  </div>
+                </div>
+                <div class="info-item">
+                  <label class="text-muted">Country</label>
+                  <div class="text-white">{{ profile.country }}</div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div class="card bg-dark text-white">
-            <div class="card-body">
-              <h6 class="mb-4">Security</h6>
-              <div class="mb-3">
-                <button 
-                  class="btn btn-outline-light me-2"
-                  @click="showResetPasswordModal = true"
-                >
-                  Reset Password
-                </button>
-                <button 
-                  class="btn btn-danger"
-                  @click="showDeleteAccountModal = true"
-                >
-                  Delete Account
-                </button>
+          <!-- Account Statistics -->
+          <div class="col-md-6">
+            <div class="card bg-dark text-white">
+              <div class="card-header">
+                <h5 class="mb-0">
+                  <i class="bi bi-graph-up me-2"></i>
+                  Account Statistics
+                </h5>
+              </div>
+              <div class="card-body">
+                <div class="info-item mb-3">
+                  <label class="text-muted">Followers</label>
+                  <div class="text-white">{{ profile.followers?.total?.toLocaleString() }}</div>
+                </div>
+                <div class="info-item mb-3">
+                  <label class="text-muted">Following</label>
+                  <div class="text-white">{{ profile.following?.total?.toLocaleString() || '0' }}</div>
+                </div>
+                <div class="info-item mb-3">
+                  <label class="text-muted">Playlists</label>
+                  <div class="text-white">{{ userPlaylists.length }}</div>
+                </div>
+                <div class="info-item">
+                  <label class="text-muted">Account Created</label>
+                  <div class="text-white">{{ formatDate(profile.created_at) }}</div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- Reset Password Modal -->
-    <div v-if="showResetPasswordModal" class="modal d-block" tabindex="-1">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content bg-dark text-white">
-          <div class="modal-header border-0">
-            <h5 class="modal-title">Reset Password</h5>
-            <button type="button" class="btn-close btn-close-white" @click="showResetPasswordModal = false"></button>
-          </div>
-          <div class="modal-body">
-            <p>We'll send a password reset email to: <strong>{{ user?.email }}</strong></p>
-          </div>
-          <div class="modal-footer border-0">
-            <button type="button" class="btn btn-outline-light" @click="showResetPasswordModal = false">Cancel</button>
-            <button type="button" class="btn btn-success" @click="handleResetPassword">
-              <span v-if="isLoading" class="spinner-border spinner-border-sm me-2"></span>
-              Send Reset Email
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Delete Account Modal -->
-    <div v-if="showDeleteAccountModal" class="modal d-block" tabindex="-1">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content bg-dark text-white">
-          <div class="modal-header border-0">
-            <h5 class="modal-title">Delete Account</h5>
-            <button type="button" class="btn-close btn-close-white" @click="showDeleteAccountModal = false"></button>
-          </div>
-          <div class="modal-body">
-            <p class="text-danger">Warning: This action cannot be undone. All your data will be permanently deleted.</p>
-            <p>Please type "DELETE" to confirm:</p>
-            <input 
-              type="text" 
-              v-model="deleteConfirmation" 
-              class="form-control bg-dark-subtle text-white"
-              placeholder="Type DELETE here"
-            >
-          </div>
-          <div class="modal-footer border-0">
-            <button type="button" class="btn btn-outline-light" @click="showDeleteAccountModal = false">Cancel</button>
-            <button 
-              type="button" 
-              class="btn btn-danger" 
-              @click="handleDeleteAccount"
-              :disabled="deleteConfirmation !== 'DELETE'"
-            >
-              <span v-if="isLoading" class="spinner-border spinner-border-sm me-2"></span>
-              Delete Forever
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Backdrop for modals -->
-    <div 
-      v-if="showResetPasswordModal || showDeleteAccountModal" 
-      class="modal-backdrop show"
-      @click="closeAllModals"
-    ></div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useSpotify } from '~/composables/useSpotify'
 
-const router = useRouter()
-const { user, isLoading, updateUserProfile, resetPassword } = useAuth()
+interface SpotifyProfile {
+  id: string
+  display_name: string
+  email: string
+  country: string
+  product: string
+  images: { url: string }[]
+  followers: {
+    total: number
+  }
+  created_at?: string
+}
 
-// Form data
-const displayName = ref('')
-const email = ref('')
-const deleteConfirmation = ref('')
+const { getUserProfile, getUserPlaylists, isConnected, isInitialized } = useSpotify()
 
-// Modal states
-const showResetPasswordModal = ref(false)
-const showDeleteAccountModal = ref(false)
-const showPhotoUploadModal = ref(false)
+const isLoading = ref(true)
+const error = ref<string | null>(null)
+const profile = ref<SpotifyProfile | null>(null)
+const userPlaylists = ref<any[]>([])
 
-// Computed properties
-const isChanged = computed(() => {
-  return displayName.value !== user.value?.displayName
-})
-
-// Initialize form data
-onMounted(() => {
-  // if (user.value) {
-  //   displayName.value = user.value.displayName || ''
-  //   email.value = user.value.email || ''
-  // } else {
-  //   // Redirect to login if not authenticated
-  //   router.push('/login')
-  // }
-})
-
-// Methods
-const updateProfile = async () => {
-  if (!user.value || !isChanged.value) return
+// Compute header background style
+const headerStyle = computed(() => {
+  if (!profile.value?.images?.[0]?.url) return {}
   
+  return {
+    background: `linear-gradient(to bottom, rgba(0,0,0,0.7), #121212), url(${profile.value.images[0].url})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center'
+  }
+})
+
+// Load profile data
+const loadProfile = async () => {
+  if (!isConnected.value) return
+
   try {
-    await updateUserProfile(displayName.value)
-    alert('Profile updated successfully')
-  } catch (error: any) {
-    alert(error.message || 'Failed to update profile')
+    isLoading.value = true
+    error.value = null
+
+    // Load user profile and playlists
+    const [profileData, playlistsData] = await Promise.all([
+      getUserProfile(),
+      getUserPlaylists()
+    ])
+    
+    profile.value = profileData.body
+    userPlaylists.value = playlistsData
+  } catch (err) {
+    console.error('Error loading profile:', err)
+    error.value = 'Failed to load profile data'
+  } finally {
+    isLoading.value = false
   }
 }
 
-const handleResetPassword = async () => {
-  if (!user.value?.email) return
-  
+// Format date
+const formatDate = (dateString?: string) => {
+  if (!dateString) return 'N/A'
+  const date = new Date(dateString)
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+}
+
+onMounted(async () => {
   try {
-    await resetPassword(user.value.email)
-    showResetPasswordModal.value = false
-    alert('Password reset email sent. Please check your inbox.')
-  } catch (error: any) {
-    alert(error.message || 'Failed to send reset email')
+    // Wait for Spotify to initialize
+    await new Promise<void>((resolve) => {
+      if (isInitialized.value) {
+        resolve()
+      } else {
+        const unwatch = watch(isInitialized, (newValue) => {
+          if (newValue) {
+            unwatch()
+            resolve()
+          }
+        })
+      }
+    })
+    
+    // Only try to load data if we have a token
+    if (isConnected.value) {
+      loadProfile()
+    }
+  } catch (error) {
+    console.error('Error in initialization:', error)
+    isLoading.value = false
   }
-}
-
-const handleDeleteAccount = async () => {
-  // This functionality would require additional Firebase security rules
-  // and server-side code, so we'll just show a message for now
-  alert('Account deletion requires additional server-side integration. Please contact support.')
-  showDeleteAccountModal.value = false
-}
-
-const closeAllModals = () => {
-  showResetPasswordModal.value = false
-  showDeleteAccountModal.value = false
-  showPhotoUploadModal.value = false
-}
+})
 </script>
 
 <style scoped>
 .profile-page {
-  background: linear-gradient(to bottom, #1e1e1e, #121212);
   min-height: 100vh;
+  background: #121212;
+  padding-bottom: 90px; /* Account for now playing bar */
+}
+
+.profile-header {
+  background: linear-gradient(to bottom, rgba(0,0,0,0.7), #121212);
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.profile-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: inherit;
+  backdrop-filter: blur(20px);
+  z-index: 0;
+}
+
+.profile-header > div {
+  position: relative;
+  z-index: 1;
+}
+
+.profile-info {
+  color: white;
+}
+
+.profile-info h1 {
+  font-size: 3rem;
+  font-weight: 900;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.profile-info .text-muted {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.profile-details {
+  padding: 2rem;
 }
 
 .card {
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
 }
 
-.bg-dark-subtle {
-  background-color: #333 !important;
-  border-color: #333 !important;
+.card:hover {
+  transform: translateY(-2px);
 }
 
-.modal {
-  background-color: rgba(0, 0, 0, 0.5);
+.card-header {
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1rem 1.5rem;
 }
 
-.modal-content {
-  background-color: #212529;
+.card-header h5 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
 }
 
-.btn-success {
-  background-color: #1DB954;
-  border-color: #1DB954;
+.card-body {
+  padding: 1.5rem;
 }
 
-.btn-success:hover:not(:disabled) {
-  background-color: #1ed760;
-  border-color: #1ed760;
+.info-item label {
+  font-size: 0.85rem;
+  margin-bottom: 0.25rem;
+  display: block;
+}
+
+.info-item .text-white {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.badge {
+  font-size: 0.85rem;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+}
+
+.bg-success {
+  background-color: #1DB954 !important;
+}
+
+.bg-secondary {
+  background-color: #535353 !important;
+}
+
+/* Loading and Error States */
+.spinner-border {
+  width: 2rem;
+  height: 2rem;
+  border-width: 0.2em;
+  color: #1DB954;
+}
+
+.alert-danger {
+  background-color: rgba(220, 53, 69, 0.1);
+  border-color: rgba(220, 53, 69, 0.2);
+  color: #ff4e45;
+}
+
+.alert-danger .bi-exclamation-triangle {
+  color: #ff4e45;
+}
+
+.btn-danger {
+  background-color: #ff4e45;
+  border-color: #ff4e45;
+  transition: all 0.2s ease;
+}
+
+.btn-danger:hover {
+  background-color: #ff6b63;
+  border-color: #ff6b63;
+  transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+  .profile-header {
+    padding: 1.5rem;
+  }
+
+  .profile-info h1 {
+    font-size: 2rem;
+  }
+
+  .profile-header img {
+    width: 150px;
+    height: 150px;
+  }
+
+  .profile-details {
+    padding: 1rem;
+  }
+
+  .card-header {
+    padding: 0.75rem 1rem;
+  }
+
+  .card-body {
+    padding: 1rem;
+  }
 }
 </style> 
